@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - override /model: tcvae_model.yaml
+  - override /trainer: default_tcvae.yaml
+  - override /datamodule: oct_datamodule.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+model:
+  trainset_size: 84600
+  input_dim: 256 
+
+trainer:
+  gpus: 1
+  max_epochs: 1

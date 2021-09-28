@@ -1,0 +1,11 @@
+_target_: src.models.head_mlp.MLP
+
+data_dir: ${data_dir}
+
+encoder_name: "last"
+latent_dim: 10
+num_classes: 10
+
+weight_decay: 1e-4
+lr: 0.0001
+fix_weights: True
