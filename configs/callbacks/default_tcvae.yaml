@@ -1,0 +1,13 @@
+model_checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  save_last: True # additionaly always save model from last epoch
+  verbose: False
+  dirpath: "checkpoints/"
+  save_top_k: 1
+  monitor: 'loss'
+  mode: "min"
+  auto_insert_metric_name: True
+
+lr_monitor:
+  _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  logging_interval: 'epoch'

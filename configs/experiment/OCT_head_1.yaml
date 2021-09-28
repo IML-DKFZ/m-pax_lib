@@ -1,0 +1,20 @@
+# @package _global_
+
+defaults:
+  - override /model: head_model.yaml
+  - override /trainer: default.yaml
+  - override /datamodule: oct_datamodule.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+model:
+  num_classes: 4 
+
+trainer:
+  gpus: 1
+  max_epochs: 200
+
+datamodule:
+  batch_size: 2
+  pin_memory: False
