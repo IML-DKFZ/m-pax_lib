@@ -2,7 +2,7 @@
 
 defaults:
   - override /model: tcvae_model.yaml
-  - override /trainer: default_tcvae.yaml
+  - override /trainer: default.yaml
   - override /datamodule: oct_datamodule.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -15,3 +15,6 @@ model:
 trainer:
   gpus: 1
   max_epochs: 1
+
+datamodule:
+  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
