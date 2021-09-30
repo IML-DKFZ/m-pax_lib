@@ -14,7 +14,7 @@ model:
 
 trainer:
   gpus: 1
-  max_epochs: 1
+  max_epochs: 100
 
 datamodule:
   data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

@@ -2,5 +2,5 @@ _target_: src.datamodules.mnist_datamodule.MNISTDataModule
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
 batch_size: 64
-num_workers: 12
+num_workers: 6
 pin_memory: True
