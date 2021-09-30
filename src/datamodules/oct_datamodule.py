@@ -34,11 +34,12 @@ def download_url(url, save_path): # Chunk wise downloading to not overuse RAM
 
 
 class OCTDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size, data_dir, num_workers, pin_memory):
+    def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory):
         super().__init__()
 
         self.data_dir = data_dir
         self.batch_size = batch_size
+        self.resize = resize
         self.num_workers = num_workers
         self.pin_memory = pin_memory
 
@@ -59,13 +60,12 @@ class OCTDataModule(pl.LightningDataModule):
 
     def setup(self):
         transform_img = transforms.Compose([ 
-            transforms.Resize((256, 256)), # Bilinear resizing
+            transforms.Resize((self.resize, self.resize)), # Bilinear resizing
             transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor(),
         ])
 
-        train = datasets.ImageFolder(self.data_dir + "/OCT/train",
-                                                 transform=transform_img)
+        train = datasets.ImageFolder(self.data_dir + "/OCT/train", transform=transform_img)
 
         data_enc, self.train_cla, self.val_cla = random_split(train, [106000, 1700, 609])
 
@@ -81,18 +81,12 @@ class OCTDataModule(pl.LightningDataModule):
 
         weights_enc, _ = random_split(weights_enc, [84600, 21400])
 
-        self.sampler_cla = torch.utils.data.sampler.WeightedRandomSampler(weights_cla, 
-                                                    len(weights_cla))
+        self.sampler_cla = torch.utils.data.sampler.WeightedRandomSampler(weights_cla, len(weights_cla))
 
-        self.sampler_enc = torch.utils.data.sampler.WeightedRandomSampler(weights_enc, 
-                                                    len(weights_enc))
+        self.sampler_enc = torch.utils.data.sampler.WeightedRandomSampler(weights_enc, len(weights_enc))
 
     def train_dataloader(self):
-        if torch.cuda.device_count() > 1: # No weighted sampling in VAE training for distributed GPUs (#GPUs > 1)
-            DL = DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)
-        else:
-            DL = DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, sampler=self.sampler_enc, pin_memory = self.pin_memory)
-        return DL
+        return DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)
 
     def train_dataloader_head(self):
         return DataLoader(self.train_cla, batch_size=32, num_workers=self.num_workers, sampler=self.sampler_cla, pin_memory = self.pin_memory)
