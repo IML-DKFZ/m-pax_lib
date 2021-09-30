@@ -8,5 +8,5 @@ auto_lr_find: True
 precision: 16
 
 weights_summary: null
-progress_bar_refresh_rate: 20
+progress_bar_refresh_rate: 40
 resume_from_checkpoint: null

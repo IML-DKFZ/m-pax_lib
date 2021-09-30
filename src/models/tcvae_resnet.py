@@ -15,7 +15,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
     def __init__(self,
                  trainset_size=50000,
                  latent_dim=10,
-                 input_dim=784,
+                 input_dim=32,
                  lr=0.001,
                  momentum=0.9,
                  weight_decay= 1e-4,

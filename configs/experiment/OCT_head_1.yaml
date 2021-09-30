@@ -16,8 +16,7 @@ trainer:
   max_epochs: 200
 
 datamodule:
-  batch_size: 2
+  batch_size: 32
   pin_memory: False
-
-datamodule:
+  resize: 256
   data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
