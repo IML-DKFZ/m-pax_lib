@@ -11,18 +11,18 @@ defaults:
 model:
   trainset_size: 84600
   input_dim: 256
-  lr: 0.00001 
+  lr: 0.0001 
 
 trainer:
-  gpus: 2
+  gpus: 1
   max_epochs: 50
   gradient_clip_val: 0.5
-  distributed_backend: "dp" 
-  sync_batchnorm: True 
+  #distributed_backend: "dp" 
+  #sync_batchnorm: True 
 
 
 datamodule:
-  batch_size: 54
-  pin_memory: False
+  batch_size: 128
+  pin_memory: True
   resize: 256
-  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

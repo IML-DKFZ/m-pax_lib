@@ -9,7 +9,8 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 model:
-  num_classes: 4 
+  num_classes: 4
+  folder_name: "OCT_beta=4" 
 
 trainer:
   gpus: 1

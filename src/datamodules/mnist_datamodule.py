@@ -31,6 +31,7 @@ class MNISTDataModule(LightningDataModule):
         batch_size: int = 64,
         num_workers: int = 0,
         pin_memory: bool = False,
+        drop_last: bool = True
     ):
         super().__init__()
 
@@ -38,6 +39,7 @@ class MNISTDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.drop_last = drop_last
 
         self.transform = transforms.Compose(
             [transforms.Resize(32), transforms.ToTensor()]
@@ -73,21 +75,16 @@ class MNISTDataModule(LightningDataModule):
         self.test = MNIST(self.data_dir, train=False, transform=self.transform)
 
     def train_dataloader(self):
-        return DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def train_dataloader_head(self):
-        return DataLoader(self.train_cla, batch_size=32, num_workers=self.num_workers)
+        return DataLoader(self.train_cla, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def val_dataloader(self):
-        return DataLoader(self.val_enc, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.val_enc, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def val_dataloader_head(self):
-        return DataLoader(self.val_cla, batch_size=32, num_workers=self.num_workers)
+        return DataLoader(self.val_cla, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def test_dataloader(self):
-        return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers)
-
-
-#data = MNISTDataModule()
-#data.setup()
-#batch = next(iter(data.train_dataloader()))
+        return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)

@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch import optim, Tensor
+from torch import Tensor
 
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -29,18 +29,55 @@ class betaTCVAE_ResNet(pl.LightningModule):
         self.num_iter = 0
 
         # Encoder
-        self.enc = AE(enc_type="resnet50", latent_dim=latent_dim, input_height = input_dim).encoder
-        self.enc.conv1 = nn.Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        self.enc = torchvision.models.resnet50()
+        self.enc.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=1, padding=3, bias=False)
+        self.enc.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
 
-        self.enc_fc = nn.Linear(in_features=512*4, out_features=256)
+        self.enc_fc = nn.Linear(in_features=1000, out_features=256)
         self.fc_mu = nn.Linear(in_features=256, out_features=latent_dim)
         self.fc_logvar = nn.Linear(in_features=256, out_features=latent_dim)
 
         # Decoder
-        self.dec = AE(latent_dim=latent_dim, input_height = input_dim).decoder
-        self.dec.conv1 = nn.Conv2d(64, 1, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
-        self.sig = torch.nn.Sigmoid()
+        # From: https://github.com/AntixK/PyTorch-VAE/blob/master/models/betatc_vae.py
 
+        hidden_dims = [32, 64, 128, 64, 32]
+        modules = []
+
+        if input_dim == 32:
+            scale = 4
+        else:
+            scale = 256
+
+        self.dec_fc = nn.Linear(latent_dim, scale *  8)
+
+        for i in range(len(hidden_dims) - 1):
+            modules.append(
+                nn.Sequential(
+                    nn.ConvTranspose2d(hidden_dims[i],
+                                       hidden_dims[i + 1],
+                                       kernel_size=3,
+                                       stride = 2,
+                                       padding=1,
+                                       output_padding=1),
+                    nn.LeakyReLU())
+            )
+        
+        modules.append(
+            nn.Sequential(
+                nn.ConvTranspose2d(hidden_dims[-1],
+                                    hidden_dims[-1],
+                                    kernel_size=3,
+                                    stride=2,
+                                    padding=1,
+                                    output_padding=1),
+                nn.LeakyReLU(),
+                nn.Conv2d(hidden_dims[-1], out_channels= 1,
+                            kernel_size= 3, padding= 1),
+                nn.Sigmoid()
+            )
+        )
+
+        self.dec = nn.Sequential(*modules)
 
     def encode(self, x):
         x = self.enc(x)
@@ -58,9 +95,9 @@ class betaTCVAE_ResNet(pl.LightningModule):
         return z
 
     def decode(self, z):
-
-        x = self.dec(z)
-        x = self.sig(x)
+        x = self.dec_fc(z)
+        x = x.view(-1, 32, 8, 8)
+        x = self.dec(x)
         return x
 
     def forward(self, x):
