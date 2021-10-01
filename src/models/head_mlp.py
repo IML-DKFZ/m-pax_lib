@@ -11,7 +11,7 @@ from src.models.tcvae_resnet import *
 class MLP(pl.LightningModule):
     def __init__(
         self,
-        encoder_name: str,
+        folder_name: str,
         data_dir: str,
         latent_dim: int,
         num_classes: int,
@@ -22,7 +22,7 @@ class MLP(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        path_ckpt = data_dir + "/models/" + encoder_name + ".ckpt"
+        path_ckpt = data_dir + "/models/" + folder_name + "/encoder.ckpt"
         self.encoder = betaTCVAE_ResNet.load_from_checkpoint(path_ckpt)
 
         if fix_weights == True:
