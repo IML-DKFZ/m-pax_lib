@@ -111,8 +111,6 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
     def loss(self, recons, x, mu, log_var, z):
         # Inspired by: https://github.com/YannDubs/disentangling-vae/blob/7b8285baa19d591cf34c652049884aca5d8acbca/disvae/models/losses.py#L316
-        recons = torch.where(torch.isnan(recons), torch.zeros_like(recons), recons)
-        recons = torch.where(torch.isinf(recons), torch.zeros_like(recons), recons)
 
         recons_loss = F.binary_cross_entropy(
             recons.view(-1, self.hparams.input_dim**2).clamp(0,1).type(torch.FloatTensor),
