@@ -11,6 +11,9 @@ import torchvision
 import pytorch_lightning as pl
 from pl_bolts.models.autoencoders.basic_ae.basic_ae_module import AE
 
+from src.utils.betatcvae_loss import BtcvaeLoss
+from src.utils.weights_init import weights_init
+
 class betaTCVAE_ResNet(pl.LightningModule):
     def __init__(self,
                  trainset_size=50000,
@@ -79,7 +82,16 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         self.dec = nn.Sequential(*modules)
 
-    def encode(self, x):
+        self.loss = BtcvaeLoss( is_mss=True,
+                                steps_anneal=anneal_steps,
+                                n_data=trainset_size,
+                                alpha=alpha,
+                                beta=beta,
+                                gamma=gamma)
+
+        self.init_weights()
+
+    def encoder(self, x):
         x = self.enc(x)
 
         x = F.relu(self.enc_fc(x))
@@ -87,94 +99,73 @@ class betaTCVAE_ResNet(pl.LightningModule):
         log_var = self.fc_logvar(x)
         return mu, log_var
 
-
-    def sampling(self, mu, log_var):
-        std = torch.exp(log_var * 0.5)
-        q = torch.distributions.Normal(mu, std)
-        z = q.rsample()
-        return z
-
-    def decode(self, z):
+    def decoder(self, z):
         x = self.dec_fc(z)
         x = x.view(-1, 32, 8, 8)
         x = self.dec(x)
         return x
 
-    def forward(self, x):
-        mu, _ = self.encode(x)
-        return mu
-
-    def log_density_gaussian(self, x: Tensor, mu: Tensor, logvar: Tensor):
-        norm = - 0.5 * (math.log(2 * math.pi) + logvar)
-        log_density = norm - 0.5 * ((x - mu) ** 2 * torch.exp(-logvar))
-        return log_density
-
-    def loss(self, recons, x, mu, log_var, z):
-        # Inspired by: https://github.com/YannDubs/disentangling-vae/blob/7b8285baa19d591cf34c652049884aca5d8acbca/disvae/models/losses.py#L316
-
-        recons_loss = F.binary_cross_entropy(
-            recons.view(-1, self.hparams.input_dim**2).clamp(0,1).type(torch.FloatTensor),
-            x.view(-1, self.hparams.input_dim**2).clamp(0,1).type(torch.FloatTensor),
-            reduction='sum')
-
-        log_q_zx = self.log_density_gaussian(z, mu, log_var).sum(dim=1)
-
-        zeros = torch.zeros_like(z)
-        log_p_z = self.log_density_gaussian(z, zeros, zeros).sum(dim=1)
-
-        batch_size, latent_dim = z.shape
-        mat_log_q_z = self.log_density_gaussian(z.view(batch_size, 1, latent_dim),
-                                                mu.view(1, batch_size,
-                                                        latent_dim),
-                                                log_var.view(1, batch_size, latent_dim))
-
-
-        # Estimate the three KL terms (log(q(z))) via importance sampling
-        strat_weight = (self.hparams.trainset_size - batch_size + 1) / \
-            (self.hparams.trainset_size * (batch_size - 1))
-
-        importance_weights = torch.Tensor(batch_size, batch_size).fill_(
-            1 / (batch_size - 1)).to(x.device)
-
-        importance_weights.view(-1)[::batch_size] = 1 / self.hparams.trainset_size
-        importance_weights.view(-1)[1::batch_size] = strat_weight
-        importance_weights[batch_size - 2, 0] = strat_weight
-        log_importance_weights = importance_weights.log()
-
-        mat_log_q_z += log_importance_weights.view(batch_size, batch_size, 1)
-
-        log_q_z = torch.logsumexp(mat_log_q_z.sum(2), dim=1, keepdim=False)
-        log_prod_q_z = torch.logsumexp(
-            mat_log_q_z, dim=1, keepdim=False).sum(1)
-
-        # Three KL Term components
-        mi_loss = (log_q_zx - log_q_z).mean()
-        tc_loss = (log_q_z - log_prod_q_z).mean()
-        kld_loss = (log_prod_q_z - log_p_z).mean()
-
+    def reparameterize(self, mean, logvar):
+        """
+        Samples from a normal distribution using the reparameterization trick.
+        Parameters
+        ----------
+        mean : torch.Tensor
+            Mean of the normal distribution. Shape (batch_size, latent_dim)
+        logvar : torch.Tensor
+            Diagonal log variance of the normal distribution. Shape (batch_size,
+            latent_dim)
+        """
         if self.training:
-            self.num_iter += 1
-            anneal_rate = min(0 + 1 * self.num_iter /
-                              self.hparams.anneal_steps, 1)
+            std = torch.exp(0.5 * logvar)
+            eps = torch.randn_like(std)
+            return mean + std * eps
         else:
-            anneal_rate = 1
+            # Reconstruction mode
+            return mean
 
-        loss = recons_loss/batch_size + \
-            self.hparams.alpha * mi_loss + \
-            self.hparams.beta * tc_loss + \
-            self.hparams.gamma * anneal_rate * kld_loss
+    def forward(self, x):
+        """
+        Forward pass of model.
+        Parameters
+        ----------
+        x : torch.Tensor
+            Batch of data. Shape (batch_size, n_chan, height, width)
+        """
+        latent_dist = self.encoder(x)
+        latent_sample = self.reparameterize(*latent_dist)
+        reconstruct = self.decoder(latent_sample)
+        return reconstruct, latent_dist, latent_sample
 
-        return loss
+    def init_weights(self):
+        self.apply(weights_init)
+
+    def sample_latent(self, x):
+        """
+        Returns a sample from the latent distribution.
+        Parameters
+        ----------
+        x : torch.Tensor
+            Batch of data. Shape (batch_size, n_chan, height, width)
+        """
+        latent_dist = self.encoder(x)
+        latent_sample = self.reparameterize(*latent_dist)
+        return latent_sample
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
      
-        mu, log_var = self.encode(x)
-        z = self.sampling(mu, log_var)
-     
-        recons = self.decode(z)
-   
-        loss = self.loss(recons, x, mu, log_var, z)
+        recon_batch, latent_dist, latent_sample = self(x)
+
+        rec_loss, kld = self.loss(x, recon_batch, latent_dist, self.training, latent_sample=latent_sample)
+
+        loss = rec_loss + kld
+
+        self.log('kld', kld, on_epoch=False, prog_bar=True, on_step=True, 
+            sync_dist=True if torch.cuda.device_count() > 1 else False)
+
+        self.log('rec_loss', rec_loss, on_epoch=False, prog_bar=True, on_step=True, 
+            sync_dist=True if torch.cuda.device_count() > 1 else False)
 
         self.log('loss', loss, on_epoch=False, prog_bar=True, on_step=True, 
             sync_dist=True if torch.cuda.device_count() > 1 else False)
@@ -184,13 +175,11 @@ class betaTCVAE_ResNet(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, _ = batch
 
-        mu, log_var = self.encode(x)
-        z = self.sampling(mu, log_var)
+        recon_batch, latent_dist, latent_sample = self(x)
 
-        recons = self.decode(z)
+        rec_loss, kld = self.loss(x, recon_batch, latent_dist, self.training, latent_sample=latent_sample)
 
-
-        val_loss = self.loss(recons, x, mu, log_var, z)
+        val_loss = rec_loss + kld
 
         self.log('val_loss', val_loss, on_epoch=True, prog_bar=True, 
             sync_dist=True if torch.cuda.device_count() > 1 else False)

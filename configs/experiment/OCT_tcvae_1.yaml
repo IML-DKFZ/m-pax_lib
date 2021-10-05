@@ -15,11 +15,12 @@ model:
 
 trainer:
   gpus: 1
+  precision: 16
   max_epochs: 50
   gradient_clip_val: 0.1
   gradient_clip_algorithm: "value"
-  #distributed_backend: "dp" 
-  #sync_batchnorm: True 
+  distributed_backend: "dp" 
+  sync_batchnorm: True 
 
 
 datamodule:
