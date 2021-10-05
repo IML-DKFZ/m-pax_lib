@@ -16,15 +16,15 @@ model:
 trainer:
   gpus: 1
   precision: 16
-  max_epochs: 50
-  gradient_clip_val: 0.1
+  max_epochs: 1
+  gradient_clip_val: 0.5
   gradient_clip_algorithm: "value"
-  distributed_backend: "dp" 
-  sync_batchnorm: True 
+  #distributed_backend: "dp" 
+  #sync_batchnorm: True 
 
 
 datamodule:
   batch_size: 64
   pin_memory: True
   resize: 256
-  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
