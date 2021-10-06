@@ -167,8 +167,10 @@ class betaTCVAE_ResNet(pl.LightningModule):
         else:
             warm_up_weight = 1
             
-
         loss = rec_loss + warm_up_weight * kld
+
+        self.log('warm_up', warm_up_weight, on_epoch=False, prog_bar=True, on_step=True, 
+            sync_dist=True if torch.cuda.device_count() > 1 else False)
 
         self.log('kld', kld, on_epoch=False, prog_bar=True, on_step=True, 
             sync_dist=True if torch.cuda.device_count() > 1 else False)
