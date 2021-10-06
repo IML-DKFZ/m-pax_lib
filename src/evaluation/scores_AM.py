@@ -29,20 +29,11 @@ class scores_AM_Original:
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
 
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
-
         exp = shap.DeepExplainer(self.model,
                                  data=images_train  
                                 )
 
         deep_shap_values = exp.shap_values(images_test[:self.n], check_additivity=True)
-
-        if self.type == 'betaVAE' or self.type == 'betaTCVAE':
-            deep_shap_values = np.asarray(deep_shap_values).reshape(
-                                    self.out_dim, self.n, height, width)
-            images_test = images_test.view(-1, 1, height, width)
 
         return deep_shap_values, images_test[:self.n]
 
@@ -58,20 +49,11 @@ class scores_AM_Original:
             if self.method == "IG":
                 images_train = torch.zeros((1, 1, height, width))
 
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
-
         exp = shap.GradientExplainer(self.model,
                                      data=images_train 
                                     )
 
         expgrad_shap_values = exp.shap_values(images_test[:self.n])
-
-        if self.type == 'betaVAE' or self.type == 'betaTCVAE':
-            expgrad_shap_values = np.asarray(expgrad_shap_values).reshape(
-                                        self.out_dim, self.n, height, width)
-            images_test = images_test.view(-1, 1, height, width)
 
         return expgrad_shap_values, images_test[:self.n]
 
@@ -84,21 +66,12 @@ class scores_AM_Original:
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
 
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
-
         exp = shap.KernelExplainer(self.kernel_model,
                                    data=images_train.detach().numpy()
                                 )
 
         kernel_shap_values = exp.shap_values(images_test[:self.n].detach().numpy(), 
                                             check_additivity=True)
-
-        if self.type == 'betaVAE' or self.type == 'betaTCVAE':
-            kernel_shap_values = np.asarray(kernel_shap_values).reshape(
-                                        self.out_dim, self.n, height, width)
-            images_test = images_test.view(-1, 1, height, width)
 
         return kernel_shap_values, images_test[:self.n]
 
@@ -144,10 +117,6 @@ class scores_AM_Latent:
             if self.method == "IG":
                 images_train = torch.zeros((1, 1, height, width))
 
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
-
             encoder = self.encoder
 
             encoding_train, _ = encoder.encode(images_train)
@@ -168,10 +137,6 @@ class scores_AM_Latent:
 
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
-
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
 
             encoder = self.encoder
 
