@@ -49,7 +49,7 @@ class BaseLoss(abc.ABC):
             Loss specific arguments
         """
 
-class BtcvaeLoss(BaseLoss):
+class betatc_loss(BaseLoss):
     """
     Compute the decomposed KL loss with either minibatch weighted sampling or
     minibatch stratified sampling according to [1]
@@ -140,7 +140,7 @@ def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None
     is_colored = n_chan == 3
 
     if distribution == "bernoulli":
-        loss = F.binary_cross_entropy(recon_data.type(torch.FloatTensor), data.type(torch.FloatTensor), reduction="sum")
+        loss = F.binary_cross_entropy(recon_data, data, reduction="sum")
     elif distribution == "gaussian":
         # loss in [0,255] space but normalized by 255 to not be too big
         loss = F.mse_loss(recon_data * 255, data * 255, reduction="sum") / 255

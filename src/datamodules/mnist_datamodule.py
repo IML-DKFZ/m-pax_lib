@@ -1,5 +1,4 @@
 from typing import Optional, Tuple
-from six.moves import urllib
 
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
