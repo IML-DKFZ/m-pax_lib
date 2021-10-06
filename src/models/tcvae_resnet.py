@@ -91,6 +91,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                                 gamma=gamma)
 
         self.init_weights()
+        self.warm_up = 0
 
     def encoder(self, x):
         x = self.enc(x)
@@ -160,7 +161,14 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         rec_loss, kld = self.loss(x, recon_batch, latent_dist, self.training, latent_sample=latent_sample)
 
-        loss = rec_loss + kld
+        if self.current_epoch == 0:
+            self.warm_up += x.shape[0]
+            warm_up_weight = self.warm_up / self.hparams.trainset_size
+        else:
+            warm_up_weight = 1
+            
+
+        loss = rec_loss + warm_up_weight * kld
 
         self.log('kld', kld, on_epoch=False, prog_bar=True, on_step=True, 
             sync_dist=True if torch.cuda.device_count() > 1 else False)
