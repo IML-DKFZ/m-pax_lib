@@ -23,6 +23,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                  momentum=0.9,
                  weight_decay= 1e-4,
                  anneal_steps: int = 200,
+                 is_mss = True,
                  alpha: float = 1.,
                  beta: float = 1.,
                  gamma: float = 1.
@@ -82,7 +83,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         self.dec = nn.Sequential(*modules)
 
-        self.loss = BtcvaeLoss( is_mss=True,
+        self.loss = BtcvaeLoss( is_mss=is_mss,
                                 steps_anneal=anneal_steps,
                                 n_data=trainset_size,
                                 alpha=alpha,

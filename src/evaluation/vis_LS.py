@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from torchvision.utils import  save_image
 
-from src.utils.vis_helper import *
+from src.evaluation.vis_helper import *
 
 
 PLOT_NAMES = dict(generate_samples="samples.png",

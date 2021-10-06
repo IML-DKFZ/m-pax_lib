@@ -8,6 +8,8 @@ trainset_size: 50000
 input_dim: 32
 latent_dim: 10
 anneal_steps: 200
+is_mss: True
+
 alpha: 1.0
 beta: 4.0
 gamma: 1.0

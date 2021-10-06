@@ -16,9 +16,11 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from src.models.tcvae_resnet import betaTCVAE_ResNet
-from src.utils import utils
-from src.utils.visualizations import*
 
+from src.evaluation.vis_LS import *
+from src.evaluation.vis_AM import *
+
+from src.utils import utils
 log = utils.get_logger(__name__)
 
 def evaluate(config: DictConfig) -> Optional[float]:
