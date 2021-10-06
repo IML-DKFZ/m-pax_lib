@@ -6,7 +6,7 @@ min_epochs: 1
 max_epochs: 70
 
 auto_lr_find: True
-precision: 16
+precision: 32
 gradient_clip_val: 0
 
 weights_summary: null

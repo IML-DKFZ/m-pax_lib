@@ -11,7 +11,7 @@ import torchvision
 import pytorch_lightning as pl
 from pl_bolts.models.autoencoders.basic_ae.basic_ae_module import AE
 
-from src.utils.betatcvae_loss import BtcvaeLoss
+from src.utils.betatcvae_loss import betatc_loss
 from src.utils.weights_init import weights_init
 
 class betaTCVAE_ResNet(pl.LightningModule):
@@ -44,15 +44,14 @@ class betaTCVAE_ResNet(pl.LightningModule):
         # Decoder
         # From: https://github.com/AntixK/PyTorch-VAE/blob/master/models/betatc_vae.py
 
-        hidden_dims = [32, 64, 128, 64, 32]
+        if input_dim == 32:
+            hidden_dims = [32, 64, 32]
+        else:
+            hidden_dims = [32, 512, 256, 128, 64, 32]
+
         modules = []
 
-        if input_dim == 32:
-            scale = 4
-        else:
-            scale = 256
-
-        self.dec_fc = nn.Linear(latent_dim, scale *  8)
+        self.dec_fc = nn.Linear(latent_dim, 512)
 
         for i in range(len(hidden_dims) - 1):
             modules.append(
@@ -83,7 +82,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         self.dec = nn.Sequential(*modules)
 
-        self.loss = BtcvaeLoss( is_mss=is_mss,
+        self.loss = betatc_loss( is_mss=is_mss,
                                 steps_anneal=anneal_steps,
                                 n_data=trainset_size,
                                 alpha=alpha,
@@ -103,7 +102,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
     def decoder(self, z):
         x = self.dec_fc(z)
-        x = x.view(-1, 32, 8, 8)
+        x = x.view(-1, 32, 4, 4)
         x = self.dec(x)
         return x
 
