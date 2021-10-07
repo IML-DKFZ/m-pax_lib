@@ -98,7 +98,7 @@ def evaluate(config: DictConfig) -> Optional[float]:
                                             ).compute()
 
     log.info("original -> latent (3/3)")
-    scores_oil, test_images_oil = scores_AM_Original(model = head,
+    scores_oil, test_images_oil = scores_AM_Original(head,
                                         datamodule.train_dataloader(),
                                         method = config.evaluation.method,
                                         out_dim = model.state_dict()['fc_mu.weight'].shape[0]
