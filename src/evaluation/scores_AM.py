@@ -9,7 +9,7 @@ IG, EG, Kernel SHAP and Deep SHAP based attribution computation.
 """
 
 class scores_AM_Original:
-    def __init__(self, model, datamodule, type, method, out_dim=10, n=5):
+    def __init__(self, model, datamodule, method, out_dim=10, n=5):
         self.model = model
         self.model.eval()
         self.n = n
@@ -18,7 +18,6 @@ class scores_AM_Original:
         self.method = method
 
         self.datamodule = datamodule
-        self.type = type
 
     def deep_shap(self):
         with torch.no_grad():
@@ -92,7 +91,7 @@ class scores_AM_Original:
         return values, images_test
 
 class scores_AM_Latent:
-    def __init__(self, model, encoder, datamodule, method, type):
+    def __init__(self, model, encoder, datamodule, method):
         self.model = model
         self.model.eval()
 
@@ -103,7 +102,6 @@ class scores_AM_Latent:
         self.method = method
 
         self.datamodule = datamodule
-        self.type = type
 
     def expgrad_shap(self):
         with torch.no_grad():
@@ -119,8 +117,8 @@ class scores_AM_Latent:
 
             encoder = self.encoder
 
-            encoding_train, _ = encoder.encode(images_train)
-            encoding_test, _ = encoder.encode(images_test)
+            encoding_train, _ = encoder.encoder(images_train)
+            encoding_test, _ = encoder.encoder(images_test)
             
         exp = shap.GradientExplainer(self.model, 
                                      data = encoding_train
@@ -140,8 +138,8 @@ class scores_AM_Latent:
 
             encoder = self.encoder
 
-            encoding_train, _ = encoder.encode(images_train)
-            encoding_test, _ = encoder.encode(images_test)
+            encoding_train, _ = encoder.encoder(images_train)
+            encoding_test, _ = encoder.encoder(images_test)
 
         exp = shap.DeepExplainer(self.model,
                                  data=encoding_train
@@ -159,14 +157,10 @@ class scores_AM_Latent:
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
 
-            if self.type == "betaVAE" or self.type == "betaTCVAE":
-                images_train = images_train.view(-1, height * width)
-                images_test = images_test.view(-1, height * width)
-
             encoder = self.encoder
 
-            encoding_train, _ = encoder.encode(images_train)
-            encoding_test, _ = encoder.encode(images_test)
+            encoding_train, _ = encoder.encoder(images_train)
+            encoding_test, _ = encoder.encoder(images_test)
 
         exp = shap.KernelExplainer(self.kernel_model,
                                    data=encoding_train.detach().numpy()

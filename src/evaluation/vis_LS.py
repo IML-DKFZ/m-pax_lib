@@ -65,12 +65,12 @@ class Visualizer():
         """Return the corresponding traversal range in absolute terms."""
         max_traversal = self.max_traversal
 
-        if max_traversal < 0.5:
-            max_traversal = (1 - 2 * max_traversal) / 2  # from 0.45 to 0.05
-            max_traversal = stats.norm.ppf(max_traversal, loc=mean, scale=std)  # from 0.05 to -1.645
+        # if max_traversal < 0.5:
+        #     max_traversal = (1 - 2 * max_traversal) / 2  # from 0.45 to 0.05
+        #     max_traversal = stats.norm.ppf(max_traversal, loc=0, scale=std)  # from 0.05 to -1.645
 
         # symmetrical traversals
-        return (-1 * max_traversal, max_traversal)
+        return ( mean - std * max_traversal, mean + std * max_traversal)
 
     def _traverse_line(self, idx, n_samples, data=None):
         """Return a (size, latent_size) latent sample, corresponding to a traversal

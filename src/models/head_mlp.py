@@ -37,7 +37,7 @@ class MLP(pl.LightningModule):
     def forward(self, x):
 
         if x.shape[1] != self.hparams.latent_dim:
-            x = self.encoder(x)
+            x, _ = self.encoder.encoder(x)
 
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
@@ -108,7 +108,7 @@ class MLP(pl.LightningModule):
         self.log('test_acc', acc, on_epoch=True, prog_bar=True,
                  sync_dist=True if torch.cuda.device_count() > 1 else False)
 
-        print("\n Confusion Matrix: \n", torch.round(confmat).type(torch.IntTensor))
+        print("\n Confusion Matrix: \n", torch.round(confmat.type(torch.FloatTensor)).type(torch.IntTensor))
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=self.hparams.lr, weight_decay = self.hparams.weight_decay)
