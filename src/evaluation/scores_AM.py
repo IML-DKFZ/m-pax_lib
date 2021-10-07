@@ -178,8 +178,6 @@ class scores_AM_Latent:
         return x
 
     def compute(self):
-        print("\nVisualizing Attribution of LSF into Predictions... ")
-
         if self.method == "DeepSHAP":
             exp, values, encoding, labels_test = self.deep_shap()
         elif self.method == "KernelSHAP":
