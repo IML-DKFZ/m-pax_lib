@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 import numpy as np
 import shap
 
@@ -7,6 +8,15 @@ Creates the attribution scores computing objects based on the original images
 and the latent representations as inputs. Every object has attached methods for 
 IG, EG, Kernel SHAP and Deep SHAP based attribution computation.
 """
+
+class Wrapper(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        _, _, x = self.model(x)
+        return x
 
 class scores_AM_Original:
     def __init__(self, model, datamodule, method, out_dim=10, n=5):
@@ -28,6 +38,9 @@ class scores_AM_Original:
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
 
+        if self.model.__class__.__name__ == "betaTCVAE_ResNet":
+            self.model = Wrapper(self.model)
+
         exp = shap.DeepExplainer(self.model,
                                  data=images_train  
                                 )
@@ -48,6 +61,9 @@ class scores_AM_Original:
             if self.method == "IG":
                 images_train = torch.zeros((1, 1, height, width))
 
+        if self.model.__class__.__name__ == "betaTCVAE_ResNet":
+            self.model = Wrapper(self.model)
+
         exp = shap.GradientExplainer(self.model,
                                      data=images_train 
                                     )
@@ -64,6 +80,9 @@ class scores_AM_Original:
 
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
+
+        if self.model.__class__.__name__ == "betaTCVAE_ResNet":
+            self.model = Wrapper(self.model)
 
         exp = shap.KernelExplainer(self.kernel_model,
                                    data=images_train.detach().numpy()

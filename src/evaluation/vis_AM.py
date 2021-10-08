@@ -9,10 +9,9 @@ All visualizations are saved into the /images folder.
 """
 
 class vis_AM_Original:
-    def __init__(self, shap_values, test_images, output_dir):
+    def __init__(self, shap_values, test_images):
         self.shap_values = shap_values
         self.test_images = test_images
-        self.output_dir = output_dir
 
     def prep(self, shap_values, test_images):
         shap_numpy = [np.swapaxes(np.swapaxes(s, 1, -1), 1, 2) for s in shap_values]
@@ -23,7 +22,6 @@ class vis_AM_Original:
         shap_values, test_values = self.prep(self.shap_values, self.test_images)
         plt.figure(figsize=(20, 14), dpi=200)
         shap.image_plot(shap_values, test_values, show=False)
-        plt.savefig(self.output_dir + 'attribution_original.png')
 
 class vis_AM_Latent:
     def __init__(self, shap_values, explainer, encoding_test, labels_test, output_dir):

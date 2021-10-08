@@ -98,14 +98,15 @@ def evaluate(config: DictConfig) -> Optional[float]:
                                             ).compute()
 
     log.info("original -> latent (3/3)")
-    scores_oil, test_images_oil = scores_AM_Original(head,
+    scores_oil, test_images_oil = scores_AM_Original(model,
                                         datamodule.train_dataloader(),
                                         method = config.evaluation.method,
                                         out_dim = model.state_dict()['fc_mu.weight'].shape[0]
                                         ).compute()
 
     log.info("Visualizing Attribution")
-    vis_AM_Original(scores_original, test_images_original, output_dir).visualise()
+    vis_AM_Original(scores_original, test_images_original).visualise()
+    plt.savefig(output_dir + 'attribution_original.png')
 
     vis_AM_Latent(shap_values=scores_latent,
                 explainer=exp, 
@@ -115,5 +116,6 @@ def evaluate(config: DictConfig) -> Optional[float]:
                 ).visualise()
 
     vis_AM_Original(scores_oil, test_images_oil).visualise()
+    plt.savefig(output_dir + 'attribution_original_into_LSF.png')
 
     log.info("Done!")
