@@ -10,14 +10,14 @@ defaults:
 
 model:
   num_classes: 4
-  folder_name: "OCT_beta=4" 
+  folder_name: "OCT_beta=1" 
 
 trainer:
   gpus: 1
-  max_epochs: 100
+  max_epochs: 200
 
 datamodule:
   batch_size: 32
-  pin_memory: False
+  pin_memory: True
   resize: 256
   #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

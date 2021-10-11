@@ -1,6 +1,7 @@
 _target_: src.datamodules.oct_datamodule.OCTDataModule
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
+seed: ${seed}
 batch_size: 32
 num_workers: 12
 pin_memory: False

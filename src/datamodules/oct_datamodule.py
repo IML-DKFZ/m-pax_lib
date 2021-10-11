@@ -34,7 +34,7 @@ def download_url(url, save_path): # Chunk wise downloading to not overuse RAM
 
 
 class OCTDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory):
+    def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
         super().__init__()
 
         self.data_dir = data_dir
@@ -42,6 +42,7 @@ class OCTDataModule(pl.LightningDataModule):
         self.resize = resize
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.seed = seed
 
     def prepare_data(self):
         if not os.path.exists(os.path.join(self.data_dir, "OCT/test/")):
@@ -67,9 +68,9 @@ class OCTDataModule(pl.LightningDataModule):
 
         train = datasets.ImageFolder(self.data_dir + "/OCT/train", transform=transform_img)
 
-        data_enc, self.train_cla, self.val_cla = random_split(train, [106000, 1700, 609])
+        data_enc, self.train_cla, self.val_cla = random_split(train, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
 
-        self.train_enc, self.val_enc = random_split(data_enc, [84600, 21400])
+        self.train_enc, self.val_enc = random_split(data_enc, [84600, 21400], generator=torch.Generator().manual_seed(self.seed))
 
         self.test = datasets.ImageFolder(self.data_dir + "/OCT/test", transform=transform_img)
 
@@ -77,9 +78,9 @@ class OCTDataModule(pl.LightningDataModule):
         weights = make_weights_for_balanced_classes(train.imgs, len(train.classes))
         weights = torch.DoubleTensor(weights)
 
-        weights_enc, weights_cla, _ = random_split(weights, [106000, 1700, 609])
+        weights_enc, weights_cla, _ = random_split(weights, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
 
-        weights_enc, _ = random_split(weights_enc, [84600, 21400])
+        weights_enc, _ = random_split(weights_enc, [84600, 21400], generator=torch.Generator().manual_seed(self.seed))
 
         self.sampler_cla = torch.utils.data.sampler.WeightedRandomSampler(weights_cla, len(weights_cla))
 
