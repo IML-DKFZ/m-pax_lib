@@ -25,11 +25,6 @@ from src.utils import utils
 log = utils.get_logger(__name__)
 
 def evaluate(config: DictConfig) -> Optional[float]:
-    """Main function for plotting fro pretrained models.
-    Parameters
-    ----------
-    config: config Arguments
-    """
 
     # Set Seed
     if "seed" in config:
