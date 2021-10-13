@@ -1,6 +1,7 @@
 MNIST/
 OCT/
 ISIC/
+CXR8/
 *.ckpt
 *.gif
 *.png

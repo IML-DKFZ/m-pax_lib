@@ -7,26 +7,33 @@ import numpy as np
 from scipy import stats
 import torch
 import torch.nn.functional as F
-from torchvision.utils import  save_image
+from torchvision.utils import save_image
 
 from src.evaluation.vis_helper import *
 
 
-PLOT_NAMES = dict(generate_samples="samples.png",
-                  data_samples="data_samples.png",
-                  reconstruct="reconstruct.png",
-                  traversals="traversals.png",
-                  reconstruct_traverse="reconstruct_traverse.png",
-                  gif_traversals="posterior_traversals.gif",)
+PLOT_NAMES = dict(
+    generate_samples="samples.png",
+    data_samples="data_samples.png",
+    reconstruct="reconstruct.png",
+    traversals="traversals.png",
+    reconstruct_traverse="reconstruct_traverse.png",
+    gif_traversals="posterior_traversals.gif",
+)
 
 
-class Visualizer():
-    def __init__(self, model, dataloader, model_dir,
-                 save_images=True,
-                 max_traversal=0.475,  # corresponds to ~2 for standard normal
-                 upsample_factor=1,
-                 latent_dim=10,
-                 input_dim=32):
+class Visualizer:
+    def __init__(
+        self,
+        model,
+        dataloader,
+        model_dir,
+        save_images=True,
+        max_traversal=0.475,  # corresponds to ~2 for standard normal
+        upsample_factor=1,
+        latent_dim=10,
+        input_dim=32,
+    ):
         """
         Visualizer is used to generate images of samples, reconstructions,
         latent traversals and so on of the trained model.
@@ -70,7 +77,7 @@ class Visualizer():
         #     max_traversal = stats.norm.ppf(max_traversal, loc=0, scale=std)  # from 0.05 to -1.645
 
         # symmetrical traversals
-        return ( mean - std * max_traversal, mean + std * max_traversal)
+        return (mean - std * max_traversal, mean + std * max_traversal)
 
     def _traverse_line(self, idx, n_samples, data=None):
         """Return a (size, latent_size) latent sample, corresponding to a traversal
@@ -94,7 +101,11 @@ class Visualizer():
 
         else:
             if data.size(0) > 1:
-                raise ValueError("Every value should be sampled from the same posterior, but {} datapoints given.".format(data.size(0)))
+                raise ValueError(
+                    "Every value should be sampled from the same posterior, but {} datapoints given.".format(
+                        data.size(0)
+                    )
+                )
 
             with torch.no_grad():
                 post_mean, post_logvar = self.model.encoder(data.to(self.device))
@@ -104,9 +115,10 @@ class Visualizer():
                 post_std_idx = torch.exp(post_logvar / 2).cpu()[0, idx]
 
             # travers from the gaussian of the posterior in case quantile
-            traversals = torch.linspace(*self._get_traversal_range(mean=post_mean_idx,
-                                                                   std=post_std_idx),
-                                        steps=n_samples)
+            traversals = torch.linspace(
+                *self._get_traversal_range(mean=post_mean_idx, std=post_std_idx),
+                steps=n_samples
+            )
 
         for i in range(n_samples):
             samples[i, idx] = traversals[i]
@@ -118,7 +130,9 @@ class Visualizer():
         to_plot = F.interpolate(to_plot, scale_factor=self.upsample_factor)
 
         if size[0] * size[1] != to_plot.shape[0]:
-            raise ValueError("Wrong size {} for datashape {}".format(size, to_plot.shape))
+            raise ValueError(
+                "Wrong size {} for datashape {}".format(size, to_plot.shape)
+            )
 
         # `nrow` is number of images PER row => number of col
         kwargs = dict(nrow=size[1], pad_value=0)
@@ -148,7 +162,9 @@ class Visualizer():
         """
         prior_samples = torch.randn(size[0] * size[1], self.latent_dim)
         generated = self._decode_latents(prior_samples)
-        return self._save_or_return(generated.data, size, PLOT_NAMES["generate_samples"])
+        return self._save_or_return(
+            generated.data, size, PLOT_NAMES["generate_samples"]
+        )
 
     def data_samples(self, data, size=(8, 8)):
         """Plot samples from the dataset
@@ -159,7 +175,7 @@ class Visualizer():
         size : tuple of ints, optional
             Size of the final grid.
         """
-        data = data[:size[0] * size[1], ...]
+        data = data[: size[0] * size[1], ...]
         return self._save_or_return(data, size, PLOT_NAMES["data_samples"])
 
     def reconstruct(self, data, size=(8, 8), is_original=True, is_force_return=False):
@@ -179,7 +195,11 @@ class Visualizer():
         """
         if is_original:
             if size[0] % 2 != 0:
-                raise ValueError("Should be even number of rows when showing originals not {}".format(size[0]))
+                raise ValueError(
+                    "Should be even number of rows when showing originals not {}".format(
+                        size[0]
+                    )
+                )
             n_samples = size[0] // 2 * size[1]
         else:
             n_samples = size[0] * size[1]
@@ -192,14 +212,13 @@ class Visualizer():
         recs = recs.cpu()
 
         to_plot = torch.cat([originals, recs]) if is_original else recs
-        return self._save_or_return(to_plot, size, PLOT_NAMES["reconstruct"],
-                                    is_force_return=is_force_return)
+        return self._save_or_return(
+            to_plot, size, PLOT_NAMES["reconstruct"], is_force_return=is_force_return
+        )
 
-    def traversals(self,
-                   data=None,
-                   n_per_latent=8,
-                   n_latents=None,
-                   is_force_return=False):
+    def traversals(
+        self, data=None, n_per_latent=8, n_latents=None, is_force_return=False
+    ):
         """Plot traverse through all latent dimensions (prior or posterior) one
         by one and plots a grid of images where each row corresponds to a latent
         traversal of one latent dimension.
@@ -220,8 +239,10 @@ class Visualizer():
             Force returning instead of saving the image.
         """
         n_latents = n_latents if n_latents is not None else self.latent_dim
-        latent_samples = [self._traverse_line(dim, n_per_latent, data=data)
-                          for dim in range(self.latent_dim)]
+        latent_samples = [
+            self._traverse_line(dim, n_per_latent, data=data)
+            for dim in range(self.latent_dim)
+        ]
         decoded_traversal = self._decode_latents(torch.cat(latent_samples, dim=0))
 
         decoded_traversal = decoded_traversal[range(n_per_latent * n_latents), ...]
@@ -230,13 +251,13 @@ class Visualizer():
         sampling_type = "prior" if data is None else "posterior"
         filename = "{}_{}".format(sampling_type, PLOT_NAMES["traversals"])
 
-        return self._save_or_return(decoded_traversal.data, size, filename,
-                                    is_force_return=is_force_return)
+        return self._save_or_return(
+            decoded_traversal.data, size, filename, is_force_return=is_force_return
+        )
 
-    def reconstruct_traverse(self, data,
-                             is_posterior=True,
-                             n_per_latent=8,
-                             n_latents=None):
+    def reconstruct_traverse(
+        self, data, is_posterior=True, n_per_latent=8, n_latents=None
+    ):
         """
         Creates a figure whith first row for original images, second are
         reconstructions, rest are traversals (prior or posterior) of the latent
@@ -258,13 +279,15 @@ class Visualizer():
         """
         n_latents = n_latents if n_latents is not None else self.latent_dim
 
-        reconstructions = self.reconstruct(data[:2 * n_per_latent, ...],
-                                           size=(2, n_per_latent),
-                                           is_force_return=True)
-        traversals = self.traversals(data=data[0:1, ...] if is_posterior else None,
-                                     n_per_latent=n_per_latent,
-                                     n_latents=n_latents,
-                                     is_force_return=True)
+        reconstructions = self.reconstruct(
+            data[: 2 * n_per_latent, ...], size=(2, n_per_latent), is_force_return=True
+        )
+        traversals = self.traversals(
+            data=data[0:1, ...] if is_posterior else None,
+            n_per_latent=n_per_latent,
+            n_latents=n_latents,
+            is_force_return=True,
+        )
 
         concatenated = np.concatenate((reconstructions, traversals), axis=0)
         concatenated = Image.fromarray(concatenated)
@@ -290,20 +313,33 @@ class Visualizer():
         width_col = int(width_col * self.upsample_factor)
         all_cols = [[] for c in range(n_per_gif)]
         for i in range(n_images):
-            grid = self.traversals(data=data[i:i + 1, ...],
-                                   n_per_latent=n_per_gif, n_latents=n_latents,
-                                   is_force_return=True)
+            grid = self.traversals(
+                data=data[i : i + 1, ...],
+                n_per_latent=n_per_gif,
+                n_latents=n_latents,
+                is_force_return=True,
+            )
 
             height, width, c = grid.shape
             padding_width = (width - width_col * n_per_gif) // (n_per_gif + 1)
 
             # split the grids into a list of column images (and removes padding)
             for j in range(n_per_gif):
-                all_cols[j].append(grid[:, [(j + 1) * padding_width + j * width_col + i
-                                            for i in range(width_col)], :])
+                all_cols[j].append(
+                    grid[
+                        :,
+                        [
+                            (j + 1) * padding_width + j * width_col + i
+                            for i in range(width_col)
+                        ],
+                        :,
+                    ]
+                )
 
-        all_cols = [concatenate_pad(cols, pad_size=7, pad_values=255, axis=1)
-                    for cols in all_cols]
+        all_cols = [
+            concatenate_pad(cols, pad_size=7, pad_values=255, axis=1)
+            for cols in all_cols
+        ]
 
         filename = os.path.join(self.model_dir, PLOT_NAMES["gif_traversals"])
         imageio.mimsave(filename, all_cols, fps=20)
@@ -331,14 +367,20 @@ class GifTraversalsTraining:
         Additional arguments to `Visualizer`
     """
 
-    def __init__(self, model, dataloader, model_dir,
-                 is_reorder_latents=False,
-                 n_per_latent=10,
-                 n_latents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        model,
+        dataloader,
+        model_dir,
+        is_reorder_latents=False,
+        n_per_latent=10,
+        n_latents=None,
+        **kwargs
+    ):
         self.save_filename = os.path.join(model_dir, "training.gif")
-        self.visualizer = Visualizer(model, dataloader, model_dir,
-                                     save_images=False, **kwargs)
+        self.visualizer = Visualizer(
+            model, dataloader, model_dir, save_images=False, **kwargs
+        )
 
         self.images = []
         self.is_reorder_latents = is_reorder_latents
@@ -349,10 +391,12 @@ class GifTraversalsTraining:
         """Generate the next gif image. Should be called after each epoch."""
         cached_training = self.visualizer.model.training
         self.visualizer.model.eval()
-        img_grid = self.visualizer.traversals(data=None,  # GIF from prior
-                                              is_reorder_latents=self.is_reorder_latents,
-                                              n_per_latent=self.n_per_latent,
-                                              n_latents=self.n_latents)
+        img_grid = self.visualizer.traversals(
+            data=None,  # GIF from prior
+            is_reorder_latents=self.is_reorder_latents,
+            n_per_latent=self.n_per_latent,
+            n_latents=self.n_latents,
+        )
         self.images.append(img_grid)
         if cached_training:
             self.visualizer.model.train()

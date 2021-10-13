@@ -6,6 +6,7 @@ from torch.nn import functional as F
 
 from src.utils.distr_sampling import *
 
+
 class BaseLoss(abc.ABC):
     """
     Base class for losses.
@@ -49,6 +50,7 @@ class BaseLoss(abc.ABC):
             Loss specific arguments
         """
 
+
 class betatc_loss(BaseLoss):
     """
     Compute the decomposed KL loss with either minibatch weighted sampling or
@@ -74,7 +76,7 @@ class betatc_loss(BaseLoss):
        autoencoders." Advances in Neural Information Processing Systems. 2018.
     """
 
-    def __init__(self, n_data, alpha=1., beta=6., gamma=1., is_mss=True, **kwargs):
+    def __init__(self, n_data, alpha=1.0, beta=6.0, gamma=1.0, is_mss=True, **kwargs):
         super().__init__(**kwargs)
         self.beta = beta
         self.alpha = alpha
@@ -82,16 +84,13 @@ class betatc_loss(BaseLoss):
         self.is_mss = is_mss  # minibatch stratified sampling
         self.n_data = n_data
 
-    def __call__(self, data, recon_batch, latent_dist, is_train,
-                 latent_sample=None):
+    def __call__(self, data, recon_batch, latent_dist, is_train, latent_sample=None):
         batch_size, latent_dim = latent_sample.shape
 
-        rec_loss = _reconstruction_loss(data, recon_batch,
-                                        distribution=self.rec_dist)
-        log_pz, log_qz, log_prod_qzi, log_q_zCx = _get_log_pz_qz_prodzi_qzCx(latent_sample,
-                                                                             latent_dist,
-                                                                             self.n_data,
-                                                                             is_mss=self.is_mss)
+        rec_loss = _reconstruction_loss(data, recon_batch, distribution=self.rec_dist)
+        log_pz, log_qz, log_prod_qzi, log_q_zCx = _get_log_pz_qz_prodzi_qzCx(
+            latent_sample, latent_dist, self.n_data, is_mss=self.is_mss
+        )
         # I[z;x] = KL[q(z,x)||q(x)q(z)] = E_x[KL[q(z|x)||q(z)]]
         mi_loss = (log_q_zCx - log_qz).mean()
         # TC[z] = KL[q(z)||\prod_i z_i]
@@ -99,12 +98,17 @@ class betatc_loss(BaseLoss):
         # dw_kl_loss is KL[q(z)||p(z)] instead of usual KL[q(z|x)||p(z))]
         dw_kl_loss = (log_prod_qzi - log_pz).mean()
 
-        anneal_reg = (linear_annealing(0, 1, self.n_train_steps, self.steps_anneal)
-                      if is_train else 1)
+        anneal_reg = (
+            linear_annealing(0, 1, self.n_train_steps, self.steps_anneal)
+            if is_train
+            else 1
+        )
 
-        kld =  (self.alpha * mi_loss +
-                self.beta * tc_loss +
-                anneal_reg * self.gamma * dw_kl_loss)
+        kld = (
+            self.alpha * mi_loss
+            + self.beta * tc_loss
+            + anneal_reg * self.gamma * dw_kl_loss
+        )
 
         return rec_loss, kld
 
@@ -148,7 +152,9 @@ def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None
         # loss in [0,255] space but normalized by 255 to not be too big but
         # multiply by 255 and divide 255, is the same as not doing anything for L1
         loss = F.l1_loss(recon_data, data, reduction="sum")
-        loss = loss * 3  # emperical value to give similar values than bernoulli => use same hyperparam
+        loss = (
+            loss * 3
+        )  # emperical value to give similar values than bernoulli => use same hyperparam
         loss = loss * (loss != 0)  # masking to avoid nan
     else:
         assert distribution not in RECON_DIST
@@ -168,6 +174,7 @@ def linear_annealing(init, fin, step, annealing_steps):
     annealed = min(init + delta * step / annealing_steps, fin)
     return annealed
 
+
 def _get_log_pz_qz_prodzi_qzCx(latent_sample, latent_dist, n_data, is_mss=True):
     batch_size, hidden_dim = latent_sample.shape
 
@@ -181,13 +188,24 @@ def _get_log_pz_qz_prodzi_qzCx(latent_sample, latent_dist, n_data, is_mss=True):
 
     mat_log_qz = matrix_log_density_gaussian(latent_sample, *latent_dist)
 
-    log_qz = (torch.logsumexp(mat_log_qz.sum(2), dim=1, keepdim=False)-math.log(batch_size * n_data))       ## Ankit - modified
-    log_prod_qzi = (torch.logsumexp(mat_log_qz, dim=1, keepdim=False)-math.log(batch_size * n_data)).sum(1) ## Ankit - modified
+    log_qz = torch.logsumexp(mat_log_qz.sum(2), dim=1, keepdim=False) - math.log(
+        batch_size * n_data
+    )
+    log_prod_qzi = (
+        torch.logsumexp(mat_log_qz, dim=1, keepdim=False)
+        - math.log(batch_size * n_data)
+    ).sum(1)
 
-    if is_mss:                                                                                                                ## Ankit - modified
-        # use stratification                                                                                                  ## Ankit - modifiede
-        log_iw_mat = log_importance_weight_matrix(batch_size, n_data).to(latent_sample.device)                                ## Ankit - modified
-        log_qz = torch.logsumexp(log_iw_mat + mat_log_qz.sum(2), dim=1, keepdim=False)                                        ## Ankit - modified
-        log_prod_qzi = torch.logsumexp(log_iw_mat.view(batch_size,batch_size,1)+mat_log_qz, dim=1, keepdim=False).sum(1)      ## Ankit - modified
+    if is_mss:
+        # use stratification
+        log_iw_mat = log_importance_weight_matrix(batch_size, n_data).to(
+            latent_sample.device
+        )
+        log_qz = torch.logsumexp(log_iw_mat + mat_log_qz.sum(2), dim=1, keepdim=False)
+        log_prod_qzi = torch.logsumexp(
+            log_iw_mat.view(batch_size, batch_size, 1) + mat_log_qz,
+            dim=1,
+            keepdim=False,
+        ).sum(1)
 
     return log_pz, log_qz, log_prod_qzi, log_q_zCx

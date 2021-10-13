@@ -16,6 +16,7 @@ from src.utils import utils
 log = utils.get_logger(__name__)
 
 from PIL import Image, ImageFile
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -84,7 +85,9 @@ def train(config: DictConfig) -> Optional[float]:
     if model.__class__.__name__ == "betaTCVAE_ResNet":
         trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader())
     else:
-        trainer.fit(model, datamodule.train_dataloader_head(), datamodule.val_dataloader_head())
+        trainer.fit(
+            model, datamodule.train_dataloader_head(), datamodule.val_dataloader_head()
+        )
 
     # Evaluate model on test set, using the best model achieved during training
     if config.get("test_after_training") and not config.trainer.get("fast_dev_run"):

@@ -10,5 +10,5 @@ precision: 32
 gradient_clip_val: 0
 
 weights_summary: null
-progress_bar_refresh_rate: 40
+progress_bar_refresh_rate: 30
 resume_from_checkpoint: null
