@@ -131,18 +131,12 @@ class ISICDataModule(pl.LightningDataModule):
         weights_val_head = torch.DoubleTensor(
             make_weights_for_balanced_classes(self.val_head, 9)
         )
-        weights_test = torch.DoubleTensor(
-            make_weights_for_balanced_classes(self.test, 9)
-        )
 
         self.sampler_train_head = torch.utils.data.sampler.WeightedRandomSampler(
             weights_train_head, len(weights_train_head)
         )
         self.sampler_val_head = torch.utils.data.sampler.WeightedRandomSampler(
             weights_val_head, len(weights_val_head)
-        )
-        self.sampler_test = torch.utils.data.sampler.WeightedRandomSampler(
-            weights_test, len(weights_test)
         )
 
     def train_dataloader(self):
@@ -184,6 +178,5 @@ class ISICDataModule(pl.LightningDataModule):
             self.test,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            sampler=self.sampler_test,
             pin_memory=self.pin_memory,
         )
