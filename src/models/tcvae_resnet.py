@@ -19,6 +19,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                  trainset_size=50000,
                  latent_dim=10,
                  input_dim=32,
+                 input_channels=1,
                  lr=0.001,
                  momentum=0.9,
                  weight_decay= 1e-4,
@@ -34,7 +35,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         # Encoder
         self.enc = torchvision.models.resnet50()
-        self.enc.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=1, padding=3, bias=False)
+        self.enc.conv1 = nn.Conv2d(input_channels, 64, kernel_size=7, stride=1, padding=3, bias=False)
         self.enc.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
 
         self.enc_fc = nn.Linear(in_features=1000, out_features=256)
@@ -74,7 +75,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                                     padding=1,
                                     output_padding=1),
                 nn.LeakyReLU(),
-                nn.Conv2d(hidden_dims[-1], out_channels= 1,
+                nn.Conv2d(hidden_dims[-1], out_channels= input_channels,
                             kernel_size= 3, padding= 1),
                 nn.Sigmoid()
             )

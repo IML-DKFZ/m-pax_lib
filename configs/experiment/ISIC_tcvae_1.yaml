@@ -1,0 +1,37 @@
+# @package _global_
+
+defaults:
+  - override /model: tcvae_model.yaml
+  - override /trainer: default.yaml
+  - override /datamodule: isic_datamodule.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+model:
+  trainset_size: 20000
+  input_dim: 256
+  input_channels: 3
+  lr: 0.0001
+  latent_dim: 10
+  anneal_steps: 200
+  is_mss: True
+  alpha: 1.0
+  beta: 4.0
+  gamma: 1.0
+
+trainer:
+  gpus: 2
+  precision: 32
+  max_epochs: 120
+  gradient_clip_val: 0.5
+  gradient_clip_algorithm: "value"
+  distributed_backend: "dp" 
+  sync_batchnorm: True 
+
+
+datamodule:
+  batch_size: 16
+  pin_memory: True
+  resize: 256
+  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

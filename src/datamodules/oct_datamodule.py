@@ -68,7 +68,7 @@ class OCTDataModule(pl.LightningDataModule):
 
         train = datasets.ImageFolder(self.data_dir + "/OCT/train", transform=transform_img)
 
-        data_enc, self.train_cla, self.val_cla = random_split(train, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
+        data_enc, self.train_head, self.val_head = random_split(train, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
 
         self.train_enc, self.val_enc = random_split(data_enc, [84600, 21400], generator=torch.Generator().manual_seed(self.seed))
 
@@ -78,11 +78,11 @@ class OCTDataModule(pl.LightningDataModule):
         weights = make_weights_for_balanced_classes(train.imgs, len(train.classes))
         weights = torch.DoubleTensor(weights)
 
-        weights_enc, weights_cla, _ = random_split(weights, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
+        weights_enc, weights_head, _ = random_split(weights, [106000, 1700, 609], generator=torch.Generator().manual_seed(self.seed))
 
         weights_enc, _ = random_split(weights_enc, [84600, 21400], generator=torch.Generator().manual_seed(self.seed))
 
-        self.sampler_cla = torch.utils.data.sampler.WeightedRandomSampler(weights_cla, len(weights_cla))
+        self.sampler_head = torch.utils.data.sampler.WeightedRandomSampler(weights_head, len(weights_head))
 
         self.sampler_enc = torch.utils.data.sampler.WeightedRandomSampler(weights_enc, len(weights_enc))
 
@@ -90,13 +90,13 @@ class OCTDataModule(pl.LightningDataModule):
         return DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)
 
     def train_dataloader_head(self):
-        return DataLoader(self.train_cla, batch_size=32, num_workers=self.num_workers, sampler=self.sampler_cla, pin_memory = self.pin_memory)
+        return DataLoader(self.train_head, batch_size=self.batch_size, num_workers=self.num_workers, sampler=self.sampler_head, pin_memory = self.pin_memory)
 
     def val_dataloader(self):
         return DataLoader(self.val_enc, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)
 
     def val_dataloader_head(self):
-        return DataLoader(self.val_cla, batch_size=64, num_workers=self.num_workers, pin_memory = self.pin_memory)
+        return DataLoader(self.val_head, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)
 
     def test_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory = self.pin_memory)

@@ -20,7 +20,7 @@ def get_samples(dataloader, num_samples, idcs=[]):
     idcs : list of ints, optional
         List of indices to of images to put at the begning of the samples.
     """
-    data_loader = dataloader.train_dataloader().dataset
+    data_loader = dataloader.train_dataloader_head().dataset
 
     idcs += random.sample(range(len(data_loader)), num_samples - len(idcs))
     samples = torch.stack([data_loader[i][0] for i in idcs], dim=0)

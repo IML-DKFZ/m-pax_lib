@@ -80,7 +80,7 @@ def evaluate(config: DictConfig) -> Optional[float]:
     log.info("Computing Attribution")
     log.info("original -> output (1/3)")
     scores_original, test_images_original = scores_AM_Original(head, 
-                                            datamodule.train_dataloader(),
+                                            datamodule.train_dataloader_head(),
                                             method = config.evaluation.method,
                                             out_dim = head.state_dict()['fc2.weight'].shape[0]
                                             ).compute()
@@ -88,13 +88,13 @@ def evaluate(config: DictConfig) -> Optional[float]:
     log.info("latent -> output (2/3)")
     exp, scores_latent, encoding_test, labels_test = scores_AM_Latent(model = head,
                                             encoder = model,
-                                            datamodule=datamodule.train_dataloader(),
+                                            datamodule=datamodule.train_dataloader_head(),
                                             method = config.evaluation.method
                                             ).compute()
 
     log.info("original -> latent (3/3)")
     scores_oil, test_images_oil = scores_AM_Original(model,
-                                        datamodule.train_dataloader(),
+                                        datamodule.test_dataloader(),
                                         method = config.evaluation.method,
                                         out_dim = model.state_dict()['fc_mu.weight'].shape[0]
                                         ).compute()

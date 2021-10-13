@@ -65,11 +65,11 @@ class MNISTDataModule(LightningDataModule):
     def setup(self):
         mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
 
-        data_cla, data_enc = random_split(mnist_full, [1000, 59000])
+        data_head, data_enc = random_split(mnist_full, [1000, 59000])
 
         self.train_enc, self.val_enc = random_split(data_enc, [50000, 9000])
 
-        self.train_cla, self.val_cla = random_split(data_cla, [800, 200])
+        self.train_head, self.val_head = random_split(data_head, [800, 200])
 
         self.test = MNIST(self.data_dir, train=False, transform=self.transform)
 
@@ -77,13 +77,13 @@ class MNISTDataModule(LightningDataModule):
         return DataLoader(self.train_enc, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def train_dataloader_head(self):
-        return DataLoader(self.train_cla, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
+        return DataLoader(self.train_head, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def val_dataloader(self):
         return DataLoader(self.val_enc, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def val_dataloader_head(self):
-        return DataLoader(self.val_cla, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
+        return DataLoader(self.val_head, batch_size=32, num_workers=self.num_workers, drop_last=self.drop_last)
 
     def test_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers, drop_last=self.drop_last)
