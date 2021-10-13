@@ -53,7 +53,7 @@ class MLP(pl.LightningModule):
 
         loss = F.cross_entropy(y_hat, y, reduction="mean")
 
-        acc = accuracy(y_hat, y, average="macro")
+        acc = accuracy(y_hat, y, average="macro", num_classes=self.hparams.num_classes)
 
         self.log(
             "loss",
@@ -85,7 +85,9 @@ class MLP(pl.LightningModule):
         val_y_hat = torch.cat(tuple([x["val_y_hat"] for x in outputs]))
 
         val_loss = F.cross_entropy(val_y_hat, val_y, reduction="mean")
-        acc = accuracy(val_y_hat, val_y, average="macro")
+        acc = accuracy(
+            val_y_hat, val_y, average="macro", num_classes=self.hparams.num_classes
+        )
 
         self.log(
             "val_loss",
@@ -118,7 +120,9 @@ class MLP(pl.LightningModule):
 
         test_loss = F.cross_entropy(test_y_hat, test_y, reduction="mean")
 
-        acc = accuracy(test_y_hat, test_y, average="macro")
+        acc = accuracy(
+            test_y_hat, test_y, average="macro", num_classes=self.hparams.num_classes
+        )
         confmat = confusion_matrix(
             test_y_hat, test_y, num_classes=self.hparams.num_classes
         )
