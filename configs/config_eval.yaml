@@ -25,7 +25,7 @@ work_dir: ${hydra:runtime.cwd}
 data_dir: ${work_dir}/data/
 
 
-seed: 43
+seed: 48
 # use `python run.py debug=true` for easy debugging!
 # this will run 1 train, val and test loop with only 1 batch
 # equivalent to running `python run.py trainer.fast_dev_run=true`

@@ -3,13 +3,13 @@
 defaults:
   - override /model: tcvae_model.yaml
   - override /trainer: default.yaml
-  - override /datamodule: oct_datamodule.yaml
+  - override /datamodule: crx8_datamodule.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 model:
-  trainset_size: 84600
+  trainset_size: 74964
   input_dim: 256
   lr: 0.0001
   latent_dim: 10
