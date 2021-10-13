@@ -6,7 +6,7 @@ from omegaconf import DictConfig
 def main(config: DictConfig):
 
     from src.evaluate import evaluate
-    
+
     return evaluate(config)
 
 

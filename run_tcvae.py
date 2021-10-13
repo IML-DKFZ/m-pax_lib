@@ -16,7 +16,7 @@ def main(config: DictConfig):
     utils.extras(config)
 
     # Pretty print config using Rich library
-    #if config.get("print_config"):
+    # if config.get("print_config"):
     #    utils.print_config(config, resolve=True)
 
     # Train model

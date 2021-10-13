@@ -10,7 +10,7 @@ from torchvision.utils import make_grid
 
 
 def get_samples(dataloader, num_samples, idcs=[]):
-    """ Generate a number of samples from the dataset.
+    """Generate a number of samples from the dataset.
     Parameters
     ----------
     dataset : str
@@ -39,15 +39,19 @@ def add_labels(input_image, labels):
     """
     new_width = input_image.width + 100
     new_size = (new_width, input_image.height)
-    new_img = Image.new("RGB", new_size, color='white')
+    new_img = Image.new("RGB", new_size, color="white")
     new_img.paste(input_image, (0, 0))
     draw = ImageDraw.Draw(new_img)
 
     for i, s in enumerate(labels):
-        draw.text(xy=(new_width - 100 + 0.005,
-                      int((i / len(labels) + 1 / (2 * len(labels))) * input_image.height)),
-                  text=s,
-                  fill=(0, 0, 0))
+        draw.text(
+            xy=(
+                new_width - 100 + 0.005,
+                int((i / len(labels) + 1 / (2 * len(labels))) * input_image.height),
+            ),
+            text=s,
+            fill=(0, 0, 0),
+        )
 
     return new_img
 
@@ -66,7 +70,7 @@ def make_grid_img(tensor, **kwargs):
     """
     grid = make_grid(tensor, **kwargs)
     img_grid = grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0)
-    img_grid = img_grid.to('cpu', torch.uint8).numpy()
+    img_grid = img_grid.to("cpu", torch.uint8).numpy()
     return img_grid
 
 
@@ -88,10 +92,23 @@ def plot_grid_gifs(filename, grid_files, pad_size=7, pad_values=255):
     n_per_gif = len(grid_gifs[0][0])
 
     # convert all to RGBA which is the most general => can merge any image
-    imgs = [concatenate_pad([concatenate_pad([arr_im_convert(gif[i], convert="RGBA")
-                                              for gif in row], pad_size, pad_values, axis=1)
-                             for row in grid_gifs], pad_size, pad_values, axis=0)
-            for i in range(n_per_gif)]
+    imgs = [
+        concatenate_pad(
+            [
+                concatenate_pad(
+                    [arr_im_convert(gif[i], convert="RGBA") for gif in row],
+                    pad_size,
+                    pad_values,
+                    axis=1,
+                )
+                for row in grid_gifs
+            ],
+            pad_size,
+            pad_values,
+            axis=0,
+        )
+        for i in range(n_per_gif)
+    ]
 
     imageio.mimsave(filename, imgs, fps=12)
 
