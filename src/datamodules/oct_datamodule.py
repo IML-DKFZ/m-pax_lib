@@ -49,6 +49,8 @@ class OCTDataModule(pl.LightningDataModule):
             data_url = "https://polybox.ethz.ch/index.php/s/kcRvwssD2yWGfsN/download"
             save_path = os.path.join(self.data_dir, "OCT/download_file.zip")
 
+            os.makedirs(os.path.join(self.data_dir, "OCT/"))
+
             print("Downloading and extracting OCT retina data...")
 
             download_url(data_url, save_path)
