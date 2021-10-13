@@ -24,7 +24,7 @@ class MLP(pl.LightningModule):
         self.save_hyperparameters()
 
         path_ckpt = data_dir + "/models/" + folder_name + "/encoder.ckpt"
-        self.encoder = betaTCVAE_ResNet.load_from_checkpoint(path_ckpt)
+        self.encoder = betaTCVAE_ResNet().load_from_checkpoint(path_ckpt)
 
         if fix_weights == True:
             self.encoder.freeze()
@@ -37,7 +37,8 @@ class MLP(pl.LightningModule):
 
     def forward(self, x):
 
-        x, _ = self.encoder.encoder(x)
+        if x.shape[1] != self.hparams.latent_dim:
+            x, _ = self.encoder.encoder(x)
 
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
