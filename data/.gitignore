@@ -1,5 +1,6 @@
 MNIST/
 OCT/
+ISIC/
 *.ckpt
 *.gif
 *.png

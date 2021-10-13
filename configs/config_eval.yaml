@@ -10,6 +10,10 @@ defaults:
   # enable color logging
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
+  - override /datamodule: oct_datamodule.yaml
+
+datamodule:
+  batch_size: 100
 
 # path to original working directory
 # hydra hijacks working directory by changing it to the current log directory,
@@ -21,7 +25,7 @@ work_dir: ${hydra:runtime.cwd}
 data_dir: ${work_dir}/data/
 
 
-seed: 42
+seed: 43
 # use `python run.py debug=true` for easy debugging!
 # this will run 1 train, val and test loop with only 1 batch
 # equivalent to running `python run.py trainer.fast_dev_run=true`

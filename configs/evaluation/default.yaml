@@ -2,7 +2,7 @@ model_dir: OCT_beta=4
 
 is_posterior: True
 upsample_factor: 1
-max_traversal: 40
+max_traversal: 140
 
 input_dim: 256
 latent_samples: 20

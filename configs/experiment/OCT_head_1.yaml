@@ -10,7 +10,7 @@ defaults:
 
 model:
   num_classes: 4
-  folder_name: "OCT_beta=1" 
+  folder_name: "OCT_beta=4" 
 
 trainer:
   gpus: 1

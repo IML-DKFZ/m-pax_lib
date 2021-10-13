@@ -6,6 +6,7 @@ weight_decay: 1e-4
 
 trainset_size: 50000
 input_dim: 32
+input_channels: 1
 latent_dim: 10
 anneal_steps: 200
 is_mss: True

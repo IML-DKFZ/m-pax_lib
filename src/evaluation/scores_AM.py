@@ -32,11 +32,8 @@ class scores_AM_Original:
     def deep_shap(self):
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
-            images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
-
-            height = images_train[0].shape[1]
-            width = images_train[0].shape[2]
+            images_test, _ = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
         if self.model.__class__.__name__ == "betaTCVAE_ResNet":
             self.model = Wrapper(self.model)
@@ -52,8 +49,8 @@ class scores_AM_Original:
     def expgrad_shap(self):
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
-            images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
+            images_test, _ = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
@@ -75,11 +72,9 @@ class scores_AM_Original:
     def kernel_shap(self):
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
-            images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
+            images_test, _ = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
-            height = images_train[0].shape[1]
-            width = images_train[0].shape[2]
 
         if self.model.__class__.__name__ == "betaTCVAE_ResNet":
             self.model = Wrapper(self.model)
@@ -126,7 +121,7 @@ class scores_AM_Latent:
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
             images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
             height = images_train[0].shape[1]
             width = images_train[0].shape[2]
@@ -134,10 +129,8 @@ class scores_AM_Latent:
             if self.method == "IG":
                 images_train = torch.zeros((1, 1, height, width))
 
-            encoder = self.encoder
-
-            encoding_train, _ = encoder.encoder(images_train)
-            encoding_test, _ = encoder.encoder(images_test)
+            encoding_train, _ = self.encoder.encoder(images_train)
+            encoding_test, _ = self.encoder.encoder(images_test)
             
         exp = shap.GradientExplainer(self.model, 
                                      data = encoding_train
@@ -150,15 +143,10 @@ class scores_AM_Latent:
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
             images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
-            height = images_train[0].shape[1]
-            width = images_train[0].shape[2]
-
-            encoder = self.encoder
-
-            encoding_train, _ = encoder.encoder(images_train)
-            encoding_test, _ = encoder.encoder(images_test)
+            encoding_train, _ = self.encoder.encoder(images_train)
+            encoding_test, _ = self.encoder.encoder(images_test)
 
         exp = shap.DeepExplainer(self.model,
                                  data=encoding_train
@@ -171,15 +159,10 @@ class scores_AM_Latent:
         with torch.no_grad():
             iter_obj = iter(self.datamodule)
             images_test, labels_test = iter_obj.next()
-            images_train, labels_train = iter_obj.next()
+            images_train, _ = iter_obj.next()
 
-            height = images_train[0].shape[1]
-            width = images_train[0].shape[2]
-
-            encoder = self.encoder
-
-            encoding_train, _ = encoder.encoder(images_train)
-            encoding_test, _ = encoder.encoder(images_test)
+            encoding_train, _ = self.encoder.encoder(images_train)
+            encoding_test, _ = self.encoder.encoder(images_test)
 
         exp = shap.KernelExplainer(self.kernel_model,
                                    data=encoding_train.detach().numpy()
