@@ -342,7 +342,7 @@ class Visualizer:
         ]
 
         filename = os.path.join(self.model_dir, PLOT_NAMES["gif_traversals"])
-        imageio.mimsave(filename, all_cols, fps=20)
+        imageio.mimsave(filename, all_cols, fps=10)
 
 
 class GifTraversalsTraining:
@@ -403,5 +403,5 @@ class GifTraversalsTraining:
 
     def save_reset(self):
         """Saves the GIF and resets the list of images. Call at the end of training."""
-        imageio.mimsave(self.save_filename, self.images, fps=20)
+        imageio.mimsave(self.save_filename, self.images, fps=10)
         self.images = []
