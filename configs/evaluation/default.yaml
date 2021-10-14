@@ -1,4 +1,4 @@
-model_dir: oct_beta=1
+model_dir: oct_beta=4
 
 is_posterior: True
 upsample_factor: 1
