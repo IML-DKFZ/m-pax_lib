@@ -1,0 +1,22 @@
+# @package _global_
+
+defaults:
+  - override /model: head_model.yaml
+  - override /trainer: default.yaml
+  - override /datamodule: cxr8_datamodule.yaml
+
+model:
+  num_classes: 14
+  folder_name: "cxr8_beta=1"
+  lr: 0.00001
+  weight_decay: 1e-3
+
+trainer:
+  gpus: 1
+  max_epochs: 50
+
+datamodule:
+  batch_size: 32
+  pin_memory: False
+  resize: 256
+  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

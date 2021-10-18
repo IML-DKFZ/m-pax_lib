@@ -26,6 +26,7 @@ class CXR8Dataset(Dataset):
         targets = self.targets.iloc[index, 1:]
         targets = np.array([targets])
         targets = targets.astype(np.float32).reshape(-1, 14)
+        targets = torch.as_tensor(targets, dtype=torch.float).squeeze()
         return img, targets
 
     def __len__(self):

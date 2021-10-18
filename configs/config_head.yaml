@@ -21,7 +21,7 @@ defaults:
 work_dir: ${hydra:runtime.cwd}
 
 # path to folder with data
-data_dir: ${work_dir}/data/
+data_dir: ${work_dir}/data/ # "/gpu/data/OE0612/l727n/data/x-dssl/"
 
 
 seed: 42

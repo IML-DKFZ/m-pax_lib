@@ -36,6 +36,18 @@ class vis_AM_Latent:
 
         if self.n == 10:
             self.labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        elif self.n == 9:
+            self.labels = [
+                "Melanoma",
+                "Melanocytic nevus",
+                "Basal cell carcinoma",
+                "Actinic keratosis",
+                "Benign keratosis",
+                "Dermatofibroma",
+                "Vascular lesion",
+                "Squamous cell carcinoma",
+                "None",
+            ]
         elif self.n == 4:
             self.labels = ["CNV", "DME", "Drusen", "Normal"]
         else:

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.optim import Adam
-from torchmetrics.functional import confusion_matrix, accuracy
+from torchmetrics.functional import confusion_matrix, accuracy, auroc
 
 import pytorch_lightning as pl
 
@@ -35,6 +35,11 @@ class MLP(pl.LightningModule):
         self.fc2 = nn.Linear(512, 512, bias=True)
         self.fc3 = nn.Linear(512, self.hparams.num_classes, bias=True)
 
+        if self.hparams.num_classes == 14:
+            self.output = nn.Softmax(dim=1)
+        else:
+            self.output = nn.Sigmoid()
+
     def forward(self, x):
 
         if x.shape[1] != self.hparams.latent_dim:
@@ -42,7 +47,7 @@ class MLP(pl.LightningModule):
 
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        y_hat = F.softmax(self.fc3(x), dim=1)
+        y_hat = self.output(self.fc3(x))
 
         return y_hat
 
@@ -51,9 +56,25 @@ class MLP(pl.LightningModule):
 
         y_hat = self(x)
 
-        loss = F.cross_entropy(y_hat, y, reduction="mean")
+        if self.hparams.num_classes == 14:
+            loss = F.binary_cross_entropy(y_hat, y)
+        else:
+            loss = F.cross_entropy(y_hat, y, reduction="mean")
 
-        acc = accuracy(y_hat, y, average="macro", num_classes=self.hparams.num_classes)
+            acc = accuracy(
+                y_hat,
+                y,
+                average="macro",
+                num_classes=self.hparams.num_classes,
+            )
+
+            self.log(
+                "acc",
+                acc,
+                on_epoch=False,
+                prog_bar=True,
+                sync_dist=True if torch.cuda.device_count() > 1 else False,
+            )
 
         self.log(
             "loss",
@@ -62,13 +83,6 @@ class MLP(pl.LightningModule):
             sync_dist=True if torch.cuda.device_count() > 1 else False,
         )
 
-        self.log(
-            "acc",
-            acc,
-            on_epoch=False,
-            prog_bar=True,
-            sync_dist=True if torch.cuda.device_count() > 1 else False,
-        )
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -76,7 +90,10 @@ class MLP(pl.LightningModule):
 
         y_hat = self(x)
 
-        val_loss = F.cross_entropy(y_hat, y, reduction="mean")
+        if self.hparams.num_classes == 14:
+            val_loss = F.binary_cross_entropy(y_hat, y)
+        else:
+            val_loss = F.cross_entropy(y_hat, y, reduction="mean")
 
         return {"val_loss": val_loss, "val_y": y, "val_y_hat": y_hat}
 
@@ -84,22 +101,30 @@ class MLP(pl.LightningModule):
         val_y = torch.cat(tuple([x["val_y"] for x in outputs]))
         val_y_hat = torch.cat(tuple([x["val_y_hat"] for x in outputs]))
 
-        val_loss = F.cross_entropy(val_y_hat, val_y, reduction="mean")
-        acc = accuracy(
-            val_y_hat, val_y, average="macro", num_classes=self.hparams.num_classes
-        )
+        if self.hparams.num_classes == 14:
+            val_loss = F.binary_cross_entropy(val_y_hat, val_y)
+
+        else:
+            val_loss = F.cross_entropy(val_y_hat, val_y, reduction="mean")
+
+            acc = accuracy(
+                val_y_hat,
+                val_y,
+                average="macro",
+                num_classes=self.hparams.num_classes,
+            )
+
+            self.log(
+                "val_acc",
+                acc,
+                on_epoch=True,
+                prog_bar=True,
+                sync_dist=True if torch.cuda.device_count() > 1 else False,
+            )
 
         self.log(
             "val_loss",
             val_loss,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True if torch.cuda.device_count() > 1 else False,
-        )
-
-        self.log(
-            "val_acc",
-            acc,
             on_epoch=True,
             prog_bar=True,
             sync_dist=True if torch.cuda.device_count() > 1 else False,
@@ -110,7 +135,10 @@ class MLP(pl.LightningModule):
 
         y_hat = self(x)
 
-        test_loss = F.cross_entropy(y_hat, y, reduction="mean")
+        if self.hparams.num_classes == 14:
+            test_loss = F.binary_cross_entropy(y_hat, y)
+        else:
+            test_loss = F.cross_entropy(y_hat, y, reduction="mean")
 
         return {"test_loss": test_loss, "test_y": y, "test_y_hat": y_hat}
 
@@ -118,14 +146,43 @@ class MLP(pl.LightningModule):
         test_y = torch.cat(tuple([x["test_y"] for x in outputs]))
         test_y_hat = torch.cat(tuple([x["test_y_hat"] for x in outputs]))
 
-        test_loss = F.cross_entropy(test_y_hat, test_y, reduction="mean")
+        if self.hparams.num_classes == 14:
+            test_loss = F.binary_cross_entropy(test_y_hat, test_y)
 
-        acc = accuracy(
-            test_y_hat, test_y, average="macro", num_classes=self.hparams.num_classes
-        )
-        confmat = confusion_matrix(
-            test_y_hat, test_y, num_classes=self.hparams.num_classes
-        )
+            test_auroc = auroc(test_y_hat, test_y.type(torch.int), num_classes=14)
+
+            self.log(
+                "test_auroc",
+                test_auroc,
+                on_epoch=True,
+                prog_bar=True,
+                sync_dist=True if torch.cuda.device_count() > 1 else False,
+            )
+
+        else:
+            test_loss = F.cross_entropy(test_y_hat, test_y, reduction="mean")
+            acc = accuracy(
+                test_y_hat,
+                test_y,
+                average="macro",
+                num_classes=self.hparams.num_classes,
+            )
+            confmat = confusion_matrix(
+                test_y_hat, test_y, num_classes=self.hparams.num_classes
+            )
+
+            self.log(
+                "test_acc",
+                acc,
+                on_epoch=True,
+                prog_bar=True,
+                sync_dist=True if torch.cuda.device_count() > 1 else False,
+            )
+
+            print(
+                "\n Confusion Matrix: \n",
+                torch.round(confmat.type(torch.FloatTensor)).type(torch.IntTensor),
+            )
 
         self.log(
             "test_loss",
@@ -133,19 +190,6 @@ class MLP(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             sync_dist=True if torch.cuda.device_count() > 1 else False,
-        )
-
-        self.log(
-            "test_acc",
-            acc,
-            on_epoch=True,
-            prog_bar=True,
-            sync_dist=True if torch.cuda.device_count() > 1 else False,
-        )
-
-        print(
-            "\n Confusion Matrix: \n",
-            torch.round(confmat.type(torch.FloatTensor)).type(torch.IntTensor),
         )
 
     def configure_optimizers(self):
