@@ -229,17 +229,26 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         recon_batch, latent_dist, latent_sample = self(x)
 
-        rec_loss, kld = self.loss(
+        rec_loss, kld_val = self.loss(
             x, recon_batch, latent_dist, self.training, latent_sample=latent_sample
         )
 
-        val_loss = rec_loss + kld
+        val_loss = rec_loss + kld_val
 
         self.log(
             "val_loss",
             val_loss,
             on_epoch=True,
             prog_bar=True,
+            sync_dist=True if torch.cuda.device_count() > 1 else False,
+        )
+
+        self.log(
+            "val_kld",
+            kld_val,
+            on_epoch=False,
+            prog_bar=True,
+            on_step=True,
             sync_dist=True if torch.cuda.device_count() > 1 else False,
         )
 

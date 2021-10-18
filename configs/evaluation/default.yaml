@@ -1,10 +1,10 @@
-model_dir: oct_beta=4
+model_dir: mnist_beta=10
 
 is_posterior: True
 upsample_factor: 1
-max_traversal: 30
+max_traversal: 50
 
-input_dim: 256
+input_dim: 32
 latent_samples: 21
 
-method: "EG" # ["EG", "IG", "DeepSHAP", "KernelSHAP"]
+method: "IG" # ["EG", "IG", "DeepSHAP", "KernelSHAP"]
