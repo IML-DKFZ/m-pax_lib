@@ -10,8 +10,9 @@ defaults:
 evaluation:
   model_dir: isic_beta=4
   max_traversal: 100
+  method: "EG"
 
 datamodule:
-  batch_size: 80
+  batch_size: 30
 
 # seed = 47

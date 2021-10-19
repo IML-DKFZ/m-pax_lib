@@ -36,7 +36,16 @@ class betaTCVAE_ResNet(pl.LightningModule):
         self.num_iter = 0
 
         # Encoder
-        self.enc = torchvision.models.resnet50()
+        if input_dim == 32:
+            self.enc = torchvision.models.resnet18()
+            hidden_dims = [32, 64, 32]
+        elif input_dim == 128:
+            self.enc = torchvision.models.resnet18()
+            hidden_dims = [32, 256, 128, 64, 32]
+        else:
+            self.enc = torchvision.models.resnet50()
+            hidden_dims = [32, 512, 256, 128, 64, 32]
+
         self.enc.conv1 = nn.Conv2d(
             input_channels, 64, kernel_size=7, stride=1, padding=3, bias=False
         )
@@ -48,11 +57,6 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
         # Decoder
         # From: https://github.com/AntixK/PyTorch-VAE/blob/master/models/betatc_vae.py
-
-        if input_dim == 32:
-            hidden_dims = [32, 64, 32]
-        else:
-            hidden_dims = [32, 512, 256, 128, 64, 32]
 
         modules = []
 

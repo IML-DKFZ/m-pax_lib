@@ -10,9 +10,9 @@ defaults:
 evaluation:
   model_dir: oct_beta=1
   max_traversal: 30
-  method: IG
+  method: "EG"
 
 datamodule:
-  batch_size: 200
+  batch_size: 30
 
 # seed = 48

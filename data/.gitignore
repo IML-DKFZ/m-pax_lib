@@ -2,6 +2,7 @@ MNIST/
 OCT/
 ISIC/
 CXR8/
+DiagVibSix/
 *.ckpt
 *.gif
 *.png

@@ -26,17 +26,19 @@ class vis_AM_Original:
 
 
 class vis_AM_Latent:
-    def __init__(self, shap_values, explainer, encoding_test, labels_test, output_dir):
+    def __init__(self, shap_values, explainer, encoding_test, labels_test, output_dir,datamodule):
         self.shap_values = shap_values
         self.encoding_test = encoding_test
         self.labels_test = labels_test
         self.exp = explainer
-        self.n = len(np.unique(labels_test.numpy()))
+        self.datamodule = datamodule
         self.output_dir = output_dir
 
-        if self.n == 10:
+        if self.datamodule == "MNISTDataModule":
             self.labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        elif self.n == 9:
+        elif self.datamodule == "DiagVibSixDataModule":
+            self.labels = [0, 2, 5]
+        elif self.datamodule == "ISICDataModule":
             self.labels = [
                 "Melanoma",
                 "Melanocytic nevus",
@@ -46,12 +48,23 @@ class vis_AM_Latent:
                 "Dermatofibroma",
                 "Vascular lesion",
                 "Squamous cell carcinoma",
-                "None",
+                "None"
             ]
-        elif self.n == 4:
-            self.labels = ["CNV", "DME", "Drusen", "Normal"]
+        elif self.datamodule == "CXR8DataModule":
+            self.labels = [
+                "Atelectasis",
+                "Cardiomegaly",
+                "Effusion",
+                "Infiltration",
+                "Mass",
+                "Nodule",
+                "Pneumonia",
+                "Pneumothorax",
+                "None"
+            ]
         else:
-            self.labels = ["square", "ellipse", "heart"]
+            self.labels = ["CNV", "DME", "Drusen", "Normal"]
+
 
     def visualise(self):
 
@@ -73,7 +86,7 @@ class vis_AM_Latent:
         for i in range(0, 4, 1):
             plt.subplot(1, 4, i + 1)
             shap.multioutput_decision_plot(
-                np.zeros((1, self.n)).tolist()[0],
+                np.zeros((1, len(self.labels))).tolist()[0],
                 self.shap_values,
                 highlight=self.labels_test[i],
                 legend_labels=self.labels,

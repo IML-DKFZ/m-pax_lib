@@ -77,7 +77,7 @@ class scores_AM_Original:
             self.model = Wrapper(self.model)
 
         exp = shap.KernelExplainer(
-            self.kernel_model, data=images_train.detach().numpy()
+            self.kernel_model, data=images_train.detach().numpy(), algorithm="kernel"
         )
 
         kernel_shap_values = exp.shap_values(
@@ -169,7 +169,7 @@ class scores_AM_Latent:
             encoding_test, _ = self.encoder.encoder(images_test)
 
         exp = shap.KernelExplainer(
-            self.kernel_model, data=encoding_train.detach().numpy()
+            self.kernel_model, data=encoding_train.detach().numpy(), algorithm="kernel"
         )
 
         kernel_shap_values = exp.shap_values(

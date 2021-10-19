@@ -3,15 +3,16 @@
 defaults:
   - override /model: tcvae_model.yaml
   - override /trainer: default.yaml
-  - override /datamodule: cxr8_datamodule.yaml
+  - override /datamodule: diagvibsix_datamodule.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 model:
-  trainset_size: 74964
-  input_dim: 256
-  lr: 0.0001
+  trainset_size: 43000
+  input_dim: 128
+  input_channels: 3
+  lr: 0.1
   latent_dim: 10
   anneal_steps: 200
   is_mss: True
@@ -22,15 +23,15 @@ model:
 trainer:
   gpus: 1
   precision: 32
-  max_epochs: 50
-  gradient_clip_val: 0.5
-  gradient_clip_algorithm: "value"
-  distributed_backend: "dp" 
-  sync_batchnorm: True 
+  max_epochs: 120
+  #gradient_clip_val: 0.5
+  #gradient_clip_algorithm: "value"
+  #distributed_backend: "dp" 
+  #sync_batchnorm: True 
 
 
 datamodule:
-  batch_size: 32
+  batch_size: 64
   pin_memory: True
-  resize: 256
+  resize: 128
   #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

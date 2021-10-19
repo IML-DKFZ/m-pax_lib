@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+import warnings
 
 import hydra
 from omegaconf import DictConfig
@@ -26,6 +27,7 @@ from src.utils import utils
 
 log = utils.get_logger(__name__)
 
+warnings.filterwarnings('ignore')
 
 def evaluate(config: DictConfig) -> Optional[float]:
 
@@ -77,55 +79,55 @@ def evaluate(config: DictConfig) -> Optional[float]:
     #                 n_per_latent=config.evaluation.latent_samples,
     #                 n_latents=cmodel.state_dict()['fc_mu.weight'].shape[0])
 
-    vis.reconstruct_traverse(
-        samples,
-        is_posterior=config.evaluation.is_posterior,
-        n_latents=model.state_dict()["fc_mu.weight"].shape[0],
-        n_per_latent=config.evaluation.latent_samples,
-    )
+    # vis.reconstruct_traverse(
+    #     samples,
+    #     is_posterior=config.evaluation.is_posterior,
+    #     n_latents=model.state_dict()["fc_mu.weight"].shape[0],
+    #     n_per_latent=config.evaluation.latent_samples,
+    # )
 
-    vis.gif_traversals(
-        samples[:5, ...],
-        n_latents=model.state_dict()["fc_mu.weight"].shape[0],
-        n_per_gif=60,
-    )
+    # vis.gif_traversals(
+    #     samples[:5, ...],
+    #     n_latents=model.state_dict()["fc_mu.weight"].shape[0],
+    #     n_per_gif=60,
+    # )
 
-    log.info("Computing Attribution")
-    log.info("original -> output (1/3)")
-    scores_original, test_images_original = scores_AM_Original(
-        head,
-        datamodule.train_dataloader(),
-        method=config.evaluation.method,
-        out_dim=head.state_dict()["fc2.weight"].shape[0],
-    ).compute()
+    # log.info("Computing Attribution")
+    # log.info("original -> output (1/3)")
+    # scores_original, test_images_original = scores_AM_Original(
+    #     head,
+    #     datamodule.train_dataloader_head(),
+    #     method=config.evaluation.method,
+    #     out_dim=head.state_dict()["fc2.weight"].shape[0],
+    # ).compute()
+
+    # vis_AM_Original(scores_original, test_images_original).visualise()
+    # plt.savefig(output_dir + "attribution_original.png")
 
     log.info("latent -> output (2/3)")
     exp, scores_latent, encoding_test, labels_test = scores_AM_Latent(
         model=head,
         encoder=model,
-        datamodule=datamodule.train_dataloader(),
-        method=config.evaluation.method,
+        datamodule=datamodule.train_dataloader_head(),
+        method=config.evaluation.method
     ).compute()
-
-    log.info("original -> latent (3/3)")
-    scores_oil, test_images_oil = scores_AM_Original(
-        model,
-        datamodule.train_dataloader(),
-        method=config.evaluation.method,
-        out_dim=model.state_dict()["fc_mu.weight"].shape[0],
-    ).compute()
-
-    log.info("Visualizing Attribution")
-    vis_AM_Original(scores_original, test_images_original).visualise()
-    plt.savefig(output_dir + "attribution_original.png")
-
+    
     vis_AM_Latent(
         shap_values=scores_latent,
         explainer=exp,
         encoding_test=encoding_test,
         labels_test=labels_test,
         output_dir=output_dir,
+        datamodule=config.datamodule._target_.split('.')[-1]
     ).visualise()
+
+    log.info("original -> latent (3/3)")
+    scores_oil, test_images_oil = scores_AM_Original(
+        model,
+        datamodule.train_dataloader_head(),
+        method=config.evaluation.method,
+        out_dim=model.state_dict()["fc_mu.weight"].shape[0],
+    ).compute()
 
     vis_AM_Original(scores_oil, test_images_oil).visualise()
     plt.savefig(output_dir + "attribution_original_into_LSF.png")
