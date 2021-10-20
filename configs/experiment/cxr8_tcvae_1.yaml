@@ -9,20 +9,20 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 model:
-  trainset_size: 74964
+  trainset_size: 60000
   input_dim: 256
   lr: 0.0001
-  latent_dim: 10
+  latent_dim: 20
   anneal_steps: 200
   is_mss: True
   alpha: 1.0
-  beta: 4.0
+  beta: 1.0
   gamma: 1.0
 
 trainer:
-  gpus: 1
+  gpus: 2
   precision: 32
-  max_epochs: 50
+  max_epochs: 150
   gradient_clip_val: 0.5
   gradient_clip_algorithm: "value"
   distributed_backend: "dp" 
@@ -30,7 +30,7 @@ trainer:
 
 
 datamodule:
-  batch_size: 32
+  batch_size: 64
   pin_memory: True
   resize: 256
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
