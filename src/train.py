@@ -82,12 +82,12 @@ def train(config: DictConfig) -> Optional[float]:
     datamodule.prepare_data()
     datamodule.setup()
 
-    if model.__class__.__name__ == "betaTCVAE_ResNet":
-        trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader())
-    else:
+    if model.__class__.__name__ == "MLP":
         trainer.fit(
             model, datamodule.train_dataloader_head(), datamodule.val_dataloader_head()
         )
+    else:
+        trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader())
 
     # Evaluate model on test set, using the best model achieved during training
     if config.get("test_after_training") and not config.trainer.get("fast_dev_run"):

@@ -1,18 +1,9 @@
-import torch
-import os
-import zipfile
-import requests
-from urllib.request import urlretrieve
 import pickle
 
 import torch
 from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision import transforms
 import pytorch_lightning as pl
-
-import pandas as pd
-import numpy as np
-from PIL import Image
 
 
 class DiagVibSixDataset(Dataset):
@@ -80,11 +71,11 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             test_data["images"], test_data["task_labels"], transform=transform_img
         )
 
-        self.train_enc, self.train_head = random_split( # 43740
+        self.train_enc, self.train_head = random_split(  # 43740
             self.train, [43000, 740], generator=torch.Generator().manual_seed(self.seed)
         )
 
-        self.val_enc, self.val_head = random_split( # 8748
+        self.val_enc, self.val_head = random_split(  # 8748
             self.val, [8100, 648], generator=torch.Generator().manual_seed(self.seed)
         )
 
