@@ -7,6 +7,7 @@ from torchmetrics.functional import confusion_matrix, accuracy
 import pytorch_lightning as pl
 
 from src.models.tcvae_resnet import *
+from src.models.tcvae_conv import *
 
 
 class MLP(pl.LightningModule):
@@ -24,7 +25,14 @@ class MLP(pl.LightningModule):
         self.save_hyperparameters()
 
         path_ckpt = data_dir + "/models/" + folder_name + "/encoder.ckpt"
-        self.encoder = betaTCVAE_ResNet().load_from_checkpoint(path_ckpt)
+
+        for architecture in [betaTCVAE_ResNet, betaTCVAE_Conv]:
+            try:
+                self.encoder = architecture.load_from_checkpoint(path_ckpt)
+                break
+            except RuntimeError:
+                # repeat the loop on failure
+                continue
 
         if fix_weights == True:
             self.encoder.freeze()
@@ -129,7 +137,7 @@ class MLP(pl.LightningModule):
         test_y_hat = torch.cat(tuple([x["test_y_hat"] for x in outputs]))
 
         test_loss = F.cross_entropy(test_y_hat, test_y, reduction="mean")
-        
+
         acc = accuracy(
             test_y_hat,
             test_y,

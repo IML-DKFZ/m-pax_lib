@@ -28,6 +28,7 @@ def make_weights_for_balanced_classes(images, nclasses):
         weight[idx] = weight_per_class[val[1]]
     return weight
 
+
 class CXR8Dataset(Dataset):
     def __init__(self, img_path, transform, csv_path=None):
         self.targets = pd.read_csv(csv_path)
@@ -42,9 +43,9 @@ class CXR8Dataset(Dataset):
         targets = self.targets.iloc[index, 1:]
         targets = np.array(targets)
 
-        if np.sum(targets)==0:
-            targets = 8
-        else: 
+        if np.sum(targets) == 0:
+            targets = 7
+        else:
             targets = np.argmax(targets)
 
         return img, targets
@@ -79,30 +80,36 @@ class CXR8DataModule(pl.LightningDataModule):
         train = CXR8Dataset(
             img_path=self.data_dir + "/CXR8/images/",
             transform=transform_img,
-            csv_path=self.data_dir + "/CXR8/train_label_singleclass.csv",
+            csv_path=self.data_dir + "/CXR8/train_label_filtered.csv",
         )
 
         val = CXR8Dataset(
             img_path=self.data_dir + "/CXR8/images/",
             transform=transform_img,
-            csv_path=self.data_dir + "/CXR8/val_label_singleclass.csv",
+            csv_path=self.data_dir + "/CXR8/val_label_filtered.csv",
         )
 
-        self.test = CXR8Dataset( #16306
+        self.test = CXR8Dataset(  # 12957
             img_path=self.data_dir + "/CXR8/images/",
             transform=transform_img,
-            csv_path=self.data_dir + "/CXR8/test_label_singleclass.csv",
+            csv_path=self.data_dir + "/CXR8/test_label_filtered.csv",
+        )
+
+        self.ood_test = CXR8Dataset(  # 45824
+            img_path=self.data_dir + "/CXR8/",
+            transform=transform_img,
+            csv_path=self.data_dir + "/CXR8/CheXpert-v1.0-small/train_filtered.csv",
         )
 
         self.train_enc, self.train_head = random_split(
             train,
-            [60000, 1327],  # 61327
+            [50769, 1000],  # 51769
             generator=torch.Generator().manual_seed(self.seed),
         )
 
         self.val_enc, self.val_head = random_split(
             val,
-            [8000, 898],  # 8898
+            [6774, 700],  # 7474
             generator=torch.Generator().manual_seed(self.seed),
         )
 
@@ -151,7 +158,7 @@ class CXR8DataModule(pl.LightningDataModule):
             self.val_head,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            #sampler=self.sampler_val_head,
+            # sampler=self.sampler_val_head,
             pin_memory=self.pin_memory,
         )
 
@@ -162,8 +169,11 @@ class CXR8DataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
         )
-    
-    # csv_path = "./data/CXR8/test_label.csv"
-    # targets = pd.read_csv(csv_path)
-    # mask = np.logical_or(np.array(np.sum(targets.iloc[:,9:], axis = 1)>=1), np.array(np.sum(targets.iloc[:,1:9], axis = 1)>1))
-    # targets[~mask].iloc[:,0:9].to_csv('test_label_singleclass.csv',sep=',', index=None)
+
+    def ood_test_dataloader(self):
+        return DataLoader(
+            self.ood_test,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
+        )
