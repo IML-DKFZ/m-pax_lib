@@ -1,0 +1,18 @@
+# @package _global_
+
+defaults:
+  - override /evaluation: default.yaml
+  - override /datamodule: diagvibsix_datamodule.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+evaluation:
+  model_dir: diagvibsix_ZGO_beta=4
+  max_traversal: 50
+  method: "EG"
+
+datamodule:
+  batch_size: 150
+
+# seed = 47

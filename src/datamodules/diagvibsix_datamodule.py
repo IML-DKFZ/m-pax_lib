@@ -1,6 +1,8 @@
-import pickle
+import pickle5 as pickle
+import numpy as np
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision import transforms
 import pytorch_lightning as pl
@@ -22,16 +24,22 @@ class DiagVibSixDataset(Dataset):
         x = self.images[index]
 
         y = self.labels[index]
+        if y == 2:
+            y = 1
+        if y == 5:
+            y = 2
 
         if self.transform:
             x = self.transform(x)
-            x = x.permute(1, 0, 2)
+            x = x.permute(1, 2, 0)
 
         return x, y
 
 
 class DiagVibSixDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
+    def __init__(
+        self, batch_size, resize, data_dir, study, num_workers, pin_memory, seed
+    ):
         super().__init__()
 
         self.data_dir = data_dir
@@ -40,6 +48,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.seed = seed
+        self.study = study
 
     def prepare_data(self):
         pass
@@ -47,7 +56,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
     def setup(self):
         transform_img = transforms.Compose([transforms.ToTensor()])
 
-        file = open(self.data_dir + "/DiagVibSix/train.pkl", "rb")
+        file = open(self.data_dir + "/DiagVibSix/" + self.study + "/train.pkl", "rb")
         train_data = pickle.load(file)
         file.close()
 
@@ -55,7 +64,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             train_data["images"], train_data["task_labels"], transform=transform_img
         )
 
-        file = open(self.data_dir + "/DiagVibSix/val.pkl", "rb")
+        file = open(self.data_dir + "/DiagVibSix/" + self.study + "/val.pkl", "rb")
         val_data = pickle.load(file)
         file.close()
 
@@ -63,7 +72,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             val_data["images"], val_data["task_labels"], transform=transform_img
         )
 
-        file = open(self.data_dir + "/DiagVibSix/test.pkl", "rb")
+        file = open(self.data_dir + "/DiagVibSix/" + self.study + "/test.pkl", "rb")
         test_data = pickle.load(file)
         file.close()
 
@@ -71,12 +80,16 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             test_data["images"], test_data["task_labels"], transform=transform_img
         )
 
-        self.train_enc, self.train_head = random_split(  # 43740
-            self.train, [43000, 740], generator=torch.Generator().manual_seed(self.seed)
+        self.train_enc, self.train_head = random_split(  # 43740 / 39995
+            self.train,
+            [len(train_data["images"]) - 740, 740],
+            generator=torch.Generator().manual_seed(self.seed),
         )
 
-        self.val_enc, self.val_head = random_split(  # 8748
-            self.val, [8100, 648], generator=torch.Generator().manual_seed(self.seed)
+        self.val_enc, self.val_head = random_split(  # 8748 / 8745
+            self.val,
+            [len(val_data["images"]) - 648, 648],
+            generator=torch.Generator().manual_seed(self.seed),
         )
 
     def train_dataloader(self):

@@ -35,4 +35,5 @@ datamodule:
   batch_size: 64
   pin_memory: False
   resize: 128
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  study: "FGO_05" # or ZGO
+  data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
