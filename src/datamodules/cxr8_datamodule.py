@@ -44,7 +44,7 @@ class CXR8Dataset(Dataset):
         targets = np.array(targets)
 
         if np.sum(targets) == 0:
-            targets = 7
+            targets = 6
         else:
             targets = np.argmax(targets)
 
@@ -115,10 +115,10 @@ class CXR8DataModule(pl.LightningDataModule):
 
         #### Computing and distributing weights for weighted sampling ####
         weights_train_head = torch.DoubleTensor(
-            make_weights_for_balanced_classes(self.train_head, 15)
+            make_weights_for_balanced_classes(self.train_head, 7)
         )
         # weights_val_head = torch.DoubleTensor(
-        #     make_weights_for_balanced_classes(self.val_head, 15)
+        #     make_weights_for_balanced_classes(self.val_head, 7)
         # )
 
         self.sampler_train_head = torch.utils.data.sampler.WeightedRandomSampler(

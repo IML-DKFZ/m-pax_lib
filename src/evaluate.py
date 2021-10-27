@@ -7,12 +7,10 @@ from omegaconf import DictConfig
 
 from pytorch_lightning import (
     LightningDataModule,
-    LightningModule,
     seed_everything,
 )
-import torch
 
-from PIL import Image, ImageFile
+from PIL import ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -22,7 +20,6 @@ from src.models.head_mlp import MLP
 
 from src.evaluation.vis_LS import *
 from src.evaluation.vis_AM import *
-from src.evaluation.scores_AM import *
 
 from src.utils import utils
 
@@ -56,89 +53,71 @@ def evaluate(config: DictConfig) -> Optional[float]:
 
     for architecture in [betaTCVAE_ResNet, betaTCVAE_Conv]:
         try:
-            model = architecture.load_from_checkpoint(path_ckpt)
+            encoder = architecture.load_from_checkpoint(path_ckpt)
             break
         except RuntimeError:
             # repeat the loop on failure
             continue
-    model.eval()
+    encoder.eval()
 
     path_ckpt = config.data_dir + "models/" + config.evaluation.model_dir + "/head.ckpt"
     head = MLP.load_from_checkpoint(path_ckpt)
-    model.eval()
+    head.eval()
 
     log.info("Visualizing Latent Space")
     vis = Visualizer(
-        model=model,
+        model=encoder,
         model_dir=output_dir,
         dataloader=datamodule,
         input_dim=config.evaluation.input_dim,
-        latent_dim=model.state_dict()["fc_mu.weight"].shape[0],
+        latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
         max_traversal=config.evaluation.max_traversal,
         upsample_factor=config.evaluation.upsample_factor,
+        index=config.evaluation.index,
     )
-
-    # same samples for all plots: sample max then take first `x`data  for all plots
-    num_samples = (
-        config.evaluation.latent_samples * model.state_dict()["fc_mu.weight"].shape[0]
-    )
-    samples = get_samples(datamodule, num_samples)
-
-    # vis.traversals(data=samples[0:1, ...] if config.evaluation.is_posterior else None,
-    #                 n_per_latent=config.evaluation.latent_samples,
-    #                 n_latents=cmodel.state_dict()['fc_mu.weight'].shape[0])
 
     vis.reconstruct_traverse(
-        samples,
+        dataloader=datamodule.train_dataloader(),
         is_posterior=config.evaluation.is_posterior,
-        n_latents=model.state_dict()["fc_mu.weight"].shape[0],
+        n_latents=encoder.state_dict()["fc_mu.weight"].shape[0],
         n_per_latent=config.evaluation.latent_samples,
     )
 
     vis.gif_traversals(
-        samples[:5, ...],
-        n_latents=model.state_dict()["fc_mu.weight"].shape[0],
+        dataloader=datamodule.train_dataloader(),
+        n_latents=encoder.state_dict()["fc_mu.weight"].shape[0],
         n_per_gif=60,
+        index=config.evaluation.index,
     )
 
-    log.info("Computing Attribution")
+    log.info("Computing Attribution of:")
     log.info("original -> output (1/3)")
-    scores_original, test_images_original = scores_AM_Original(
-        head,
-        datamodule.train_dataloader_head(),
-        method=config.evaluation.method,
-        out_dim=head.state_dict()["fc2.weight"].shape[0],
-    ).compute()
 
-    vis_AM_Original(scores_original, test_images_original).visualise()
-    plt.savefig(output_dir + "attribution_original.png")
+    AttributionOriginalY(
+        head=head,
+        dataloader=datamodule.train_dataloader(),
+        index=config.evaluation.index,
+        output_dir=output_dir,
+    ).visualization()
 
     log.info("latent -> output (2/3)")
-    exp, scores_latent, encoding_test, labels_test = scores_AM_Latent(
-        model=head,
-        encoder=model,
-        datamodule=datamodule.train_dataloader_head(),
-        method=config.evaluation.method,
-    ).compute()
 
-    vis_AM_Latent(
-        shap_values=scores_latent,
-        explainer=exp,
-        encoding_test=encoding_test,
-        labels_test=labels_test,
+    AttributionLatentY(
+        head=head,
+        encoder=encoder,
+        dataloader=datamodule.train_dataloader(),
         output_dir=output_dir,
-        datamodule=config.datamodule._target_.split(".")[-1],
-    ).visualise()
+        index=config.evaluation.index,
+    ).visualization()
 
     log.info("original -> latent (3/3)")
-    scores_oil, test_images_oil = scores_AM_Original(
-        model,
-        datamodule.train_dataloader_head(),
-        method=config.evaluation.method,
-        out_dim=model.state_dict()["fc_mu.weight"].shape[0],
-    ).compute()
 
-    vis_AM_Original(scores_oil, test_images_oil).visualise()
-    plt.savefig(output_dir + "attribution_original_into_LSF.png")
+    AttributionOriginalLatent(
+        encoder=encoder,
+        dataloader=datamodule.train_dataloader(),
+        index=config.evaluation.index,
+        latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
+        output_dir=output_dir,
+    ).visualization()
 
     log.info("Done!")

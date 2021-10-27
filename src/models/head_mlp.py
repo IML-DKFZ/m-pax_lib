@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.optim import Adam
+from torch.optim import SGD, Adam
 from torchmetrics.functional import confusion_matrix, accuracy
 
 import pytorch_lightning as pl
@@ -18,11 +18,17 @@ class MLP(pl.LightningModule):
         latent_dim: int,
         num_classes: int,
         weight_decay: float,
+        momentum=0.9999,
         lr=0.0001,
+        blocked_latent_features=[],
         fix_weights=True,
     ):
         super().__init__()
         self.save_hyperparameters()
+
+        self.kept_latent_features = torch.tensor(
+            [x for x in list(range(0, latent_dim)) if x not in blocked_latent_features]
+        )
 
         path_ckpt = data_dir + "/models/" + folder_name + "/encoder.ckpt"
 
@@ -39,7 +45,7 @@ class MLP(pl.LightningModule):
         else:
             self.encoder.eval()
 
-        self.fc1 = nn.Linear(self.hparams.latent_dim, 512, bias=True)
+        self.fc1 = nn.Linear(len(self.kept_latent_features), 512, bias=True)
         self.fc2 = nn.Linear(512, 512, bias=True)
         self.fc3 = nn.Linear(512, self.hparams.num_classes, bias=True)
 
@@ -47,6 +53,9 @@ class MLP(pl.LightningModule):
 
         if x.shape[1] != self.hparams.latent_dim:
             x, _ = self.encoder.encoder(x)
+
+        if len(self.hparams.blocked_latent_features) > 0:
+            x = x.index_select(1, self.kept_latent_features.to(x.device))
 
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -170,10 +179,11 @@ class MLP(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        optimizer = Adam(
+        optimizer = SGD(
             self.parameters(),
             lr=self.hparams.lr,
             weight_decay=self.hparams.weight_decay,
+            momentum=self.hparams.momentum,
         )
 
         scheduler = {

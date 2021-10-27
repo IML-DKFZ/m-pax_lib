@@ -9,7 +9,7 @@ defaults:
 
 evaluation:
   model_dir: cxr8_beta=10
-  max_traversal: 160
+  max_traversal: 100
   method: "EG"
 
 datamodule:

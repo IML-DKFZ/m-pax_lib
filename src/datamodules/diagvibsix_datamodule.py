@@ -9,9 +9,10 @@ import pytorch_lightning as pl
 
 
 class DiagVibSixDataset(Dataset):
-    def __init__(self, images, labels, transform=None):
+    def __init__(self, images, labels, study, transform=None):
         self.images = images
         self.labels = labels
+        self.study = study
         self.transform = transform
 
     def __len__(self):
@@ -24,10 +25,19 @@ class DiagVibSixDataset(Dataset):
         x = self.images[index]
 
         y = self.labels[index]
-        if y == 2:
-            y = 1
-        if y == 5:
-            y = 2
+
+        if self.study == "ZGO":
+            if y == 2:
+                y = 1
+            if y == 5:
+                y = 2
+        else:
+            if y == 1:
+                y = 0
+            if y == 6:
+                y = 1
+            if y == 8:
+                y = 2
 
         if self.transform:
             x = self.transform(x)
@@ -61,7 +71,10 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         file.close()
 
         self.train = DiagVibSixDataset(
-            train_data["images"], train_data["task_labels"], transform=transform_img
+            train_data["images"],
+            train_data["task_labels"],
+            self.study,
+            transform=transform_img,
         )
 
         file = open(self.data_dir + "/DiagVibSix/" + self.study + "/val.pkl", "rb")
@@ -69,7 +82,10 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         file.close()
 
         self.val = DiagVibSixDataset(
-            val_data["images"], val_data["task_labels"], transform=transform_img
+            val_data["images"],
+            val_data["task_labels"],
+            self.study,
+            transform=transform_img,
         )
 
         file = open(self.data_dir + "/DiagVibSix/" + self.study + "/test.pkl", "rb")
@@ -77,7 +93,10 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         file.close()
 
         self.test = DiagVibSixDataset(
-            test_data["images"], test_data["task_labels"], transform=transform_img
+            test_data["images"],
+            test_data["task_labels"],
+            self.study,
+            transform=transform_img,
         )
 
         self.train_enc, self.train_head = random_split(  # 43740 / 39995

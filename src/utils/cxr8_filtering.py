@@ -76,3 +76,24 @@ for set in datasets:
             "Edema",
         ]
     ].to_csv("./data/CXR8/" + set + "_label_filtered.csv", sep=",", index=None)
+
+# import os
+
+# folder = "./data/ISIC/Dark_Skin/"
+# Dark_skin = os.listdir(folder)
+
+# for i in range(len(Dark_skin)):
+#     Dark_skin[i] = Dark_skin[i].rsplit(".", 1)[0]
+
+# labels = pd.read_csv("/home/l727n/Projects/x-dssl/data/ISIC/labels.csv")
+
+# labels_ood = labels[labels["image"].isin(Dark_skin)]
+
+# labels = labels[~labels["image"].isin(Dark_skin)]
+
+# labels_ood = labels_ood.iloc[:, :9]
+
+# labels = labels.iloc[:, :9]
+
+# labels_ood.to_csv("./data/ISIC/labels_OOD.csv", sep=",", index=None)
+# labels.to_csv("./data/ISIC/labels.csv", sep=",", index=None)

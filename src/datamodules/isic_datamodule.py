@@ -52,7 +52,7 @@ class ISICDataset(Dataset):
 
         targets = self.targets.iloc[index, 1:]
         targets = np.array([targets])
-        targets = targets.reshape(-1, 9).argmax()
+        targets = targets.reshape(-1, 8).argmax()
         return img, targets
 
     def __len__(self):
@@ -120,8 +120,14 @@ class ISICDataModule(pl.LightningDataModule):
             self.test,
         ) = random_split(
             data,
-            [20000, 3000, 250, 81, 2000],
+            [20000, 2918, 250, 81, 2000],
             generator=torch.Generator().manual_seed(self.seed),
+        )
+
+        self.ood_test = ISICDataset(
+            img_path=self.data_dir + "/ISIC/ISIC_2019_Training_Input",
+            transform=transform_img,
+            csv_path=self.data_dir + "/ISIC/labels_ood.csv",
         )
 
         #### Computing and distributing weights for weighted sampling ####
@@ -176,6 +182,14 @@ class ISICDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(
             self.test,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
+        )
+
+    def ood_test_dataloader(self):
+        return DataLoader(
+            self.ood_test,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
