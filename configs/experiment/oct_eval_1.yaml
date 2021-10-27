@@ -8,11 +8,11 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: oct_beta=1
-  max_traversal: 30
-  method: "EG"
+  model_dir: oct_beta=4
+  max_traversal: 70
+  index: 0
 
 datamodule:
-  batch_size: 30
+  batch_size: 60
 
 # seed = 48

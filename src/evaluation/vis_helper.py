@@ -9,25 +9,6 @@ import imageio
 from torchvision.utils import make_grid
 
 
-def get_samples(dataloader, num_samples, idcs=[]):
-    """Generate a number of samples from the dataset.
-    Parameters
-    ----------
-    dataset : str
-        The name of the dataset.
-    num_samples : int, optional
-        The number of samples to load from the dataset
-    idcs : list of ints, optional
-        List of indices to of images to put at the begning of the samples.
-    """
-    data_loader = dataloader.train_dataloader_head().dataset
-
-    idcs += random.sample(range(len(data_loader)), num_samples - len(idcs))
-    samples = torch.stack([data_loader[i][0] for i in idcs], dim=0)
-
-    return samples
-
-
 def add_labels(input_image, labels):
     """Adds labels next to rows of an image.
     Parameters

@@ -7,4 +7,4 @@ max_traversal: 50
 input_dim: 32
 latent_samples: 21
 
-method: "IG" # ["EG", "IG", "DeepSHAP", "KernelSHAP"]
+index: 0
