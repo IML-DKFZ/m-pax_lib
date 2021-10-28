@@ -57,6 +57,7 @@ class CXR8Dataset(Dataset):
 class CXR8DataModule(pl.LightningDataModule):
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
         super().__init__()
+        self.name = "CXR8DataModule"
 
         self.data_dir = data_dir
         self.batch_size = batch_size

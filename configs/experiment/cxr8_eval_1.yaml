@@ -8,9 +8,10 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: cxr8_beta=10
+  model_dir: cxr8_beta=1
   max_traversal: 100
   method: "EG"
+  baseline: 0
 
 datamodule:
   batch_size: 100

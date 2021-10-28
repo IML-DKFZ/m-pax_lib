@@ -51,6 +51,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         self, batch_size, resize, data_dir, study, num_workers, pin_memory, seed
     ):
         super().__init__()
+        self.name = "DiagVibSixDataModule"
 
         self.data_dir = data_dir
         self.batch_size = batch_size

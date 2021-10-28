@@ -62,6 +62,7 @@ class ISICDataset(Dataset):
 class ISICDataModule(pl.LightningDataModule):
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
         super().__init__()
+        self.name = "ISICDataModule"
 
         self.data_dir = data_dir
         self.batch_size = batch_size

@@ -8,11 +8,12 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: isic_beta=10
+  model_dir: isic_beta=1
   max_traversal: 120
-  method: "EG"
+  index: 0
+  baseline: 1
 
 datamodule:
-  batch_size: 30
+  batch_size: 80
 
 # seed = 47

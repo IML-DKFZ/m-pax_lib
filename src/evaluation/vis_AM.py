@@ -24,31 +24,22 @@ abs_cmap = LinearSegmentedColormap.from_list(
 
 
 class AttributionOriginalY:
-    def __init__(self, head, dataloader, index, output_dir):
+    def __init__(self, head, dataloader, dataset, index, output_dir, baseline):
         self.index = index
         self.output_dir = output_dir
+        self.baseline = baseline
 
         self.head = head
 
         self.dataloader = dataloader
 
-        if dataloader == "MNISTDataModule":
+        if dataset == "MNISTDataModule":
             self.labels_name = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        elif dataloader == "DiagVibSixDataModule":
+        elif dataset == "DiagVibSixDataModule":
             self.labels_name = [0, 2, 5]
-        elif dataloader == "ISICDataModule":
-            self.labels_name = [
-                "Melanoma",
-                "Melanocytic nevus",
-                "Basal cell carcinoma",
-                "Actinic keratosis",
-                "Benign keratosis",
-                "Dermatofibroma",
-                "Vascular lesion",
-                "Squamous cell carcinoma",
-                "None",
-            ]
-        elif dataloader == "CXR8DataModule":
+        elif dataset == "ISICDataModule":
+            self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
+        elif dataset == "CXR8DataModule":
             self.labels_name = [
                 "Atelectasis",
                 "Cardiomegaly",
@@ -73,7 +64,7 @@ class AttributionOriginalY:
 
         rand_img_dist = torch.cat(
             [
-                self.images[self.index].unsqueeze(0) * 0,
+                self.images[self.index].unsqueeze(0) * 0 + self.baseline,
                 self.images[self.index].unsqueeze(0) * 1,
             ]
         )
@@ -93,7 +84,7 @@ class AttributionOriginalY:
             strides=(3, 8, 8),
             target=self.labels[self.index],
             sliding_window_shapes=(channels, 15, 15),
-            baselines=0,
+            baselines=self.baseline,
         )
 
         return attributions_gs, attributions_occ
@@ -138,12 +129,12 @@ class AttributionOriginalY:
         axis[0].set_title("Original Image \n", fontsize=18)
         axis[1].set_title(
             "Abs. Attribution into Ground Truth Label: "
-            + true_label
+            + str(true_label)
             + " ("
-            + prob_true
+            + str(prob_true)
             + "%)"
             + "\n Predicted Label: "
-            + pred_label
+            + str(pred_label)
             + " ("
             + str(prob_pred)
             + "%) \n",
@@ -199,7 +190,7 @@ class AttributionOriginalY:
 
 
 class AttributionLatentY:
-    def __init__(self, head, encoder, dataloader, output_dir, index):
+    def __init__(self, head, encoder, dataloader, dataset, output_dir, index):
         self.output_dir = output_dir
         self.index = index
 
@@ -208,23 +199,13 @@ class AttributionLatentY:
 
         self.dataloader = dataloader
 
-        if dataloader == "MNISTDataModule":
+        if dataset == "MNISTDataModule":
             self.labels_name = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        elif dataloader == "DiagVibSixDataModule":
+        elif dataset == "DiagVibSixDataModule":
             self.labels_name = [0, 2, 5]
-        elif dataloader == "ISICDataModule":
-            self.labels_name = [
-                "Melanoma",
-                "Melanocytic nevus",
-                "Basal cell carcinoma",
-                "Actinic keratosis",
-                "Benign keratosis",
-                "Dermatofibroma",
-                "Vascular lesion",
-                "Squamous cell carcinoma",
-                "None",
-            ]
-        elif dataloader == "CXR8DataModule":
+        elif dataset == "ISICDataModule":
+            self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
+        elif dataset == "CXR8DataModule":
             self.labels_name = [
                 "Atelectasis",
                 "Cardiomegaly",
@@ -277,7 +258,7 @@ class AttributionLatentY:
         for i in range(0, 4, 1):
             plt.subplot(1, 4, i + 1)
             shap.multioutput_decision_plot(
-                np.zeros((1, 4)).tolist()[0],
+                np.zeros((1, len(self.labels_name))).tolist()[0],
                 attributions_gs,
                 highlight=labels[i],
                 legend_labels=self.labels_name,
@@ -301,14 +282,14 @@ class Wrapper(nn.Module):
 
 
 class AttributionOriginalLatent:
-    def __init__(self, encoder, dataloader, index, latent_dim, output_dir):
+    def __init__(self, encoder, dataloader, index, latent_dim, output_dir, baseline):
         self.index = index
         self.output_dir = output_dir
+        self.baseline = baseline
 
         self.encoder = encoder
 
-        if self.encoder.__class__.__name__ == "betaTCVAE_ResNet":
-            self.encoder = Wrapper(self.encoder)
+        self.encoder = Wrapper(self.encoder)
 
         self.latent_dim = latent_dim
 
@@ -322,7 +303,7 @@ class AttributionOriginalLatent:
 
         rand_img_dist = torch.cat(
             [
-                self.images[self.index].unsqueeze(0) * 0,
+                self.images[self.index].unsqueeze(0) * 0 + self.baseline,
                 self.images[self.index].unsqueeze(0) * 1,
             ]
         )
@@ -353,7 +334,7 @@ class AttributionOriginalLatent:
                     strides=(3, 8, 8),
                     target=i,
                     sliding_window_shapes=(channels, 15, 15),
-                    baselines=0,
+                    baselines=self.baseline,
                 )
             )
 

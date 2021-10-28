@@ -8,10 +8,10 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: diagvibsix_FGO_05_beta=4
+  model_dir: diagvibsix_ZGO_beta=10
   max_traversal: 70
-  method: "EG"
+  index: 0
 
 datamodule:
   batch_size: 100
-  study: "FGO_05"
+  study: "ZGO"
