@@ -37,6 +37,7 @@ class MNISTDataModule(LightningDataModule):
         resize=32,
     ):
         super().__init__()
+        self.name = "MNISTDataModule"
 
         self.data_dir = data_dir
         self.batch_size = batch_size

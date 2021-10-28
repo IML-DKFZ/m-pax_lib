@@ -8,3 +8,4 @@ input_dim: 32
 latent_samples: 21
 
 index: 0
+baseline: 0

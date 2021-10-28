@@ -98,6 +98,8 @@ def evaluate(config: DictConfig) -> Optional[float]:
         dataloader=datamodule.train_dataloader(),
         index=config.evaluation.index,
         output_dir=output_dir,
+        dataset=datamodule.name,
+        baseline=config.evaluation.baseline,
     ).visualization()
 
     log.info("latent -> output (2/3)")
@@ -108,6 +110,7 @@ def evaluate(config: DictConfig) -> Optional[float]:
         dataloader=datamodule.train_dataloader(),
         output_dir=output_dir,
         index=config.evaluation.index,
+        dataset=datamodule.name,
     ).visualization()
 
     log.info("original -> latent (3/3)")
@@ -118,6 +121,7 @@ def evaluate(config: DictConfig) -> Optional[float]:
         index=config.evaluation.index,
         latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
         output_dir=output_dir,
+        baseline=config.evaluation.baseline,
     ).visualization()
 
     log.info("Done!")
