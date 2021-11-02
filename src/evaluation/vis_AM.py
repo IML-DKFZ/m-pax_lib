@@ -39,18 +39,6 @@ class AttributionOriginalY:
             self.labels_name = [0, 2, 5]
         elif dataset == "ISICDataModule":
             self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
-        elif dataset == "CXR8DataModule":
-            self.labels_name = [
-                "Atelectasis",
-                "Cardiomegaly",
-                "Effusion",
-                "Infiltration",
-                "Mass",
-                "Nodule",
-                "Pneumonia",
-                "Pneumothorax",
-                "None",
-            ]
         else:
             self.labels_name = ["CNV", "DME", "Drusen", "Normal"]
 
@@ -205,18 +193,6 @@ class AttributionLatentY:
             self.labels_name = [0, 2, 5]
         elif dataset == "ISICDataModule":
             self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
-        elif dataset == "CXR8DataModule":
-            self.labels_name = [
-                "Atelectasis",
-                "Cardiomegaly",
-                "Effusion",
-                "Infiltration",
-                "Mass",
-                "Nodule",
-                "Pneumonia",
-                "Pneumothorax",
-                "None",
-            ]
         else:
             self.labels_name = ["CNV", "DME", "Drusen", "Normal"]
 

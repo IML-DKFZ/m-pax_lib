@@ -1,8 +1,0 @@
-_target_: src.datamodules.cxr8_datamodule.CXR8DataModule
-
-data_dir: ${data_dir} 
-seed: ${seed}
-batch_size: 32
-num_workers: 12
-pin_memory: False
-resize: 256
