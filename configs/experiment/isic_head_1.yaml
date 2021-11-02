@@ -6,13 +6,14 @@ defaults:
   - override /datamodule: isic_datamodule.yaml
 
 model:
-  num_classes: 9
+  num_classes: 8
   folder_name: "isic_beta=1"
   lr: 0.0001
+  blocked_latent_features: []
 
 trainer:
   gpus: 1
-  max_epochs: 250
+  max_epochs: 400
 
 datamodule:
   batch_size: 32

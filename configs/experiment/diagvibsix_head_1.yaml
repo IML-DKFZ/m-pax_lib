@@ -1,0 +1,24 @@
+# @package _global_
+
+defaults:
+  - override /model: head_model.yaml
+  - override /trainer: default.yaml
+  - override /datamodule: diagvibsix_datamodule.yaml
+
+model:
+  num_classes: 3
+  folder_name: "diagvibsix_ZGO_beta=10"
+  lr: 0.0001
+
+trainer:
+  gpus: 1
+  max_epochs: 50
+
+datamodule:
+  batch_size: 16
+  pin_memory: False
+  resize: 128
+  study: "ZGO"
+  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+
+# seed=55

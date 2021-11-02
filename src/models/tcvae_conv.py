@@ -1,21 +1,17 @@
-import math
-
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch import Tensor
 
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 import torchvision
 import pytorch_lightning as pl
-from pl_bolts.models.autoencoders.basic_ae.basic_ae_module import AE
 
 from src.utils.betatcvae_loss import betatc_loss
 from src.utils.weights_init import weights_init
 
 
-class betaTCVAE_ResNet(pl.LightningModule):
+class betaTCVAE_Conv(pl.LightningModule):
     def __init__(
         self,
         trainset_size=50000,
@@ -31,36 +27,58 @@ class betaTCVAE_ResNet(pl.LightningModule):
         beta: float = 1.0,
         gamma: float = 1.0,
     ):
-        super(betaTCVAE_ResNet, self).__init__()
+        super(betaTCVAE_Conv, self).__init__()
         self.save_hyperparameters()
         self.num_iter = 0
 
-        # Encoder
         if input_dim == 32:
-            self.enc = torchvision.models.resnet18()
-            hidden_dims = [32, 64, 32]
-        elif input_dim == 128:
-            self.enc = torchvision.models.resnet18()
-            hidden_dims = [32, 256, 128, 64, 32]
+            hidden_dims = [32, 32, 64]
         else:
-            self.enc = torchvision.models.resnet50()
-            hidden_dims = [32, 512, 256, 128, 64, 32]
+            hidden_dims = [32, 32, 32, 64, 64]
 
-        self.enc.conv1 = nn.Conv2d(
-            input_channels, 64, kernel_size=7, stride=1, padding=3, bias=False
+        modules = []
+
+        modules.append(
+            nn.Sequential(
+                nn.Conv2d(
+                    input_channels,
+                    out_channels=hidden_dims[1],
+                    kernel_size=4,
+                    padding=1,
+                    stride=2,
+                ),
+                nn.ReLU(),
+            )
         )
-        self.enc.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
 
-        self.enc_fc = nn.Linear(in_features=1000, out_features=256)
+        for i in range(len(hidden_dims) - 1):
+            modules.append(
+                nn.Sequential(
+                    nn.Conv2d(
+                        hidden_dims[i],
+                        hidden_dims[i + 1],
+                        kernel_size=4,
+                        stride=2,
+                        padding=1,
+                    ),
+                    nn.ReLU(),
+                )
+            )
+
+        self.enc = nn.Sequential(*modules)
+
+        self.enc_fc = nn.Linear(in_features=1024, out_features=256)
         self.fc_mu = nn.Linear(in_features=256, out_features=latent_dim)
         self.fc_logvar = nn.Linear(in_features=256, out_features=latent_dim)
 
         # Decoder
         # From: https://github.com/AntixK/PyTorch-VAE/blob/master/models/betatc_vae.py
 
+        hidden_dims = list(reversed(hidden_dims))
         modules = []
 
-        self.dec_fc = nn.Linear(latent_dim, 512)
+        self.dec_fc_1 = nn.Linear(latent_dim, 256)
+        self.dec_fc_2 = nn.Linear(256, 1024)
 
         for i in range(len(hidden_dims) - 1):
             modules.append(
@@ -73,7 +91,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                         padding=1,
                         output_padding=1,
                     ),
-                    nn.LeakyReLU(),
+                    nn.ReLU(),
                 )
             )
 
@@ -87,7 +105,7 @@ class betaTCVAE_ResNet(pl.LightningModule):
                     padding=1,
                     output_padding=1,
                 ),
-                nn.LeakyReLU(),
+                nn.ReLU(),
                 nn.Conv2d(
                     hidden_dims[-1],
                     out_channels=input_channels,
@@ -114,15 +132,16 @@ class betaTCVAE_ResNet(pl.LightningModule):
 
     def encoder(self, x):
         x = self.enc(x)
-
+        x = torch.flatten(x, start_dim=1)
         x = F.relu(self.enc_fc(x))
         mu = self.fc_mu(x)
         log_var = self.fc_logvar(x)
         return mu, log_var
 
     def decoder(self, z):
-        x = self.dec_fc(z)
-        x = x.view(-1, 32, 4, 4)
+        x = F.relu(self.dec_fc_1(z))
+        x = F.relu(self.dec_fc_2(x))
+        x = x.view(-1, 64, 4, 4)
         x = self.dec(x)
         return x
 

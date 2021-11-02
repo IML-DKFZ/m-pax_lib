@@ -2,17 +2,16 @@
 
 defaults:
   - override /evaluation: default.yaml
-  - override /datamodule: oct_datamodule.yaml
+  - override /datamodule: diagvibsix_datamodule.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: oct_beta=4
+  model_dir: diagvibsix_ZGO_beta=10
   max_traversal: 70
   index: 0
 
 datamodule:
-  batch_size: 60
-
-# seed = 48
+  batch_size: 100
+  study: "ZGO"
