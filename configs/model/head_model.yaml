@@ -2,10 +2,11 @@ _target_: src.models.head_mlp.MLP
 
 data_dir: ${data_dir}
 
-folder_name: "oct_beta=4"
+folder_name: "mnist_beta=10"
 latent_dim: 10
 num_classes: 10
 
 weight_decay: 1e-4
-lr: 0.001
+momentum: 0.9999
+lr: 0.0001
 fix_weights: True

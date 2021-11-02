@@ -36,6 +36,7 @@ def download_url(url, save_path):  # Chunk wise downloading to not overuse RAM
 class OCTDataModule(pl.LightningDataModule):
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
         super().__init__()
+        self.name = "OCTDataModule"
 
         self.data_dir = data_dir
         self.batch_size = batch_size
