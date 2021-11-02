@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
 import pytorch_lightning as pl
 
+from src.utils.download_url import *
+
 # From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
 # Computing class weights for balanced sampling
 def make_weights_for_balanced_classes(images, nclasses):
@@ -22,16 +24,6 @@ def make_weights_for_balanced_classes(images, nclasses):
     for idx, val in enumerate(images):
         weight[idx] = weight_per_class[val[1]]
     return weight
-
-
-def download_url(url, save_path):  # Chunk wise downloading to not overuse RAM
-    r = requests.get(url, stream=True, allow_redirects=True)
-    with open(save_path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-                f.flush()
-
 
 class OCTDataModule(pl.LightningDataModule):
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):

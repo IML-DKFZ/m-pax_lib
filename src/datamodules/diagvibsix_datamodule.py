@@ -1,5 +1,8 @@
 import pickle5 as pickle
 import numpy as np
+import os
+import zipfile
+import requests
 
 import torch
 import torch.nn.functional as F
@@ -7,6 +10,7 @@ from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision import transforms
 import pytorch_lightning as pl
 
+from src.utils.download_url import *
 
 class DiagVibSixDataset(Dataset):
     def __init__(self, images, labels, study, transform=None):
@@ -26,18 +30,11 @@ class DiagVibSixDataset(Dataset):
 
         y = self.labels[index]
 
-        if self.study == "ZGO":
-            if y == 2:
-                y = 1
-            if y == 5:
-                y = 2
-        else:
-            if y == 1:
-                y = 0
-            if y == 6:
-                y = 1
-            if y == 8:
-                y = 2
+        if y == 2:
+            y = 1
+        if y == 5:
+            y = 2
+
 
         if self.transform:
             x = self.transform(x)
@@ -62,7 +59,21 @@ class DiagVibSixDataModule(pl.LightningDataModule):
         self.study = study
 
     def prepare_data(self):
-        pass
+        if not os.path.exists(os.path.join(self.data_dir, "DiagVibSix/ZGO/")):
+            data_url = "https://polybox.ethz.ch/index.php/s/aEWoWH2yv1HFws4/download"
+            save_path = os.path.join(self.data_dir, "DiagVibSix/download_file.zip")
+
+            os.makedirs(os.path.join(self.data_dir, "DiagVibSix/"))
+
+            print("Downloading and extracting DiagVibSix data...")
+
+            download_url(data_url, save_path)
+
+            zip_ref = zipfile.ZipFile(save_path, "r")
+            zip_ref.extractall(self.data_dir + "/DiagVibSix/")
+            zip_ref.close()
+
+            os.remove(save_path)
 
     def setup(self):
         transform_img = transforms.Compose([transforms.ToTensor()])
