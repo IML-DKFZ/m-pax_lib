@@ -4,7 +4,7 @@ model_checkpoint:
   verbose: False
   dirpath: "checkpoints/"
   save_top_k: 1
-  monitor: 'loss'
+  monitor: 'val_loss'
   mode: "min"
   auto_insert_metric_name: True
 
