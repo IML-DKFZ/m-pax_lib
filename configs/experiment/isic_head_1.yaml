@@ -6,7 +6,7 @@ defaults:
   - override /datamodule: isic_datamodule.yaml
 
 model:
-  num_classes: 8
+  num_classes: 9
   folder_name: "isic_beta=1"
   lr: 0.0001
   blocked_latent_features: []

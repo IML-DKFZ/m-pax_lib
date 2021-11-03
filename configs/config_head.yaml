@@ -40,5 +40,3 @@ ignore_warnings: True
 # check performance on test set, using the best model achieved during training
 # lightning chooses best model based on metric specified in checkpoint callback
 test_after_training: True
-
-ood_test_after_training: False
