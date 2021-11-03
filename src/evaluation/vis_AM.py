@@ -24,10 +24,11 @@ abs_cmap = LinearSegmentedColormap.from_list(
 
 
 class AttributionOriginalY:
-    def __init__(self, head, dataloader, dataset, index, output_dir, baseline):
+    def __init__(self, head, dataloader, dataset, index, output_dir, baseline, kernel_size):
         self.index = index
         self.output_dir = output_dir
         self.baseline = baseline
+        self.kernel_size = kernel_size
 
         self.head = head
 
@@ -50,18 +51,11 @@ class AttributionOriginalY:
 
         gradient_shap = GradientShap(self.head)
 
-        rand_img_dist = torch.cat(
-            [
-                self.images[self.index].unsqueeze(0) * 0 + self.baseline,
-                self.images[self.index].unsqueeze(0) * 1,
-            ]
-        )
-
         attributions_gs = gradient_shap.attribute(
             self.images[self.index].unsqueeze(0),
-            n_samples=50,
+            n_samples=200,
             stdevs=0.0001,
-            baselines=rand_img_dist,
+            baselines=self.images,
             target=self.labels[self.index],
         )
 
@@ -69,9 +63,9 @@ class AttributionOriginalY:
 
         attributions_occ = occlusion.attribute(
             self.images[self.index].unsqueeze(0),
-            strides=(3, 8, 8),
+            strides=(3, 5, 5),
             target=self.labels[self.index],
-            sliding_window_shapes=(channels, 15, 15),
+            sliding_window_shapes=(channels, self.kernel_size, self.kernel_size),
             baselines=self.baseline,
         )
 
@@ -258,10 +252,11 @@ class Wrapper(nn.Module):
 
 
 class AttributionOriginalLatent:
-    def __init__(self, encoder, dataloader, index, latent_dim, output_dir, baseline):
+    def __init__(self, encoder, dataloader, index, latent_dim, output_dir, baseline, kernel_size):
         self.index = index
         self.output_dir = output_dir
         self.baseline = baseline
+        self.kernel_size = kernel_size
 
         self.encoder = encoder
 
@@ -277,13 +272,6 @@ class AttributionOriginalLatent:
 
             channels = self.images.shape[1]
 
-        rand_img_dist = torch.cat(
-            [
-                self.images[self.index].unsqueeze(0) * 0 + self.baseline,
-                self.images[self.index].unsqueeze(0) * 1,
-            ]
-        )
-
         gradient_shap = GradientShap(self.encoder)
 
         attributions_gs = []
@@ -292,9 +280,9 @@ class AttributionOriginalLatent:
             attributions_gs.append(
                 gradient_shap.attribute(
                     self.images[self.index].unsqueeze(0),
-                    n_samples=50,
+                    n_samples=200,
                     stdevs=0.0001,
-                    baselines=rand_img_dist,
+                    baselines=self.images,
                     target=i,
                 )
             )
@@ -307,9 +295,9 @@ class AttributionOriginalLatent:
             attributions_occ.append(
                 occlusion.attribute(
                     self.images[self.index].unsqueeze(0),
-                    strides=(3, 8, 8),
+                    strides=(3, 5, 5),
                     target=i,
-                    sliding_window_shapes=(channels, 15, 15),
+                    sliding_window_shapes=(channels, self.kernel_size, self.kernel_size),
                     baselines=self.baseline,
                 )
             )

@@ -7,18 +7,18 @@ defaults:
 
 model:
   num_classes: 3
-  folder_name: "diagvibsix_ZGO_beta=10"
+  folder_name: "diagvibsix_FGO_20_beta=4"
   lr: 0.0001
 
 trainer:
   gpus: 1
-  max_epochs: 50
+  max_epochs: 70
 
 datamodule:
   batch_size: 16
   pin_memory: False
   resize: 128
-  study: "ZGO"
+  study: "FGO_20"
   #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
 
 # seed=55
