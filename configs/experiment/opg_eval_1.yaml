@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - override /evaluation: default.yaml
+  - override /datamodule: opg_datamodule.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+evaluation:
+  model_dir: opg_beta=4
+  max_traversal: 30
+
+datamodule:
+  batch_size: 10
+
+# seed = 48
