@@ -24,7 +24,9 @@ abs_cmap = LinearSegmentedColormap.from_list(
 
 
 class AttributionOriginalY:
-    def __init__(self, head, dataloader, dataset, index, output_dir, baseline, kernel_size):
+    def __init__(
+        self, head, dataloader, dataset, index, output_dir, baseline, kernel_size
+    ):
         self.index = index
         self.output_dir = output_dir
         self.baseline = baseline
@@ -252,7 +254,9 @@ class Wrapper(nn.Module):
 
 
 class AttributionOriginalLatent:
-    def __init__(self, encoder, dataloader, index, latent_dim, output_dir, baseline, kernel_size):
+    def __init__(
+        self, encoder, dataloader, index, latent_dim, output_dir, baseline, kernel_size
+    ):
         self.index = index
         self.output_dir = output_dir
         self.baseline = baseline
@@ -297,7 +301,11 @@ class AttributionOriginalLatent:
                     self.images[self.index].unsqueeze(0),
                     strides=(3, 5, 5),
                     target=i,
-                    sliding_window_shapes=(channels, self.kernel_size, self.kernel_size),
+                    sliding_window_shapes=(
+                        channels,
+                        self.kernel_size,
+                        self.kernel_size,
+                    ),
                     baselines=self.baseline,
                 )
             )

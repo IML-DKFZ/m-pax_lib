@@ -181,9 +181,7 @@ class MLP(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = Adam(
             self.parameters(),
-            lr=self.hparams.lr,
-            # weight_decay=self.hparams.weight_decay,
-            # momentum=self.hparams.momentum,
+            lr=self.hparams.lr
         )
 
         scheduler = {

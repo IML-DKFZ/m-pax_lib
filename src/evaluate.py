@@ -123,7 +123,7 @@ def evaluate(config: DictConfig) -> Optional[float]:
         latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
         output_dir=output_dir,
         baseline=config.evaluation.baseline,
-        kernel_size=config.evaluation.kernel_size, 
+        kernel_size=config.evaluation.kernel_size,
     ).visualization()
 
     log.info("Done!")
