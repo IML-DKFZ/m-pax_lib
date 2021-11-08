@@ -41,7 +41,17 @@ class AttributionOriginalY:
         elif dataset == "DiagVibSixDataModule":
             self.labels_name = [0, 2, 5]
         elif dataset == "ISICDataModule":
-            self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
+            self.labels_name = [
+                "MEL",
+                "NV",
+                "BCC",
+                "AK",
+                "BKL",
+                "DF",
+                "VASC",
+                "SCC",
+                "UNK",
+            ]
         else:
             self.labels_name = ["CNV", "DME", "Drusen", "Normal"]
 
@@ -188,7 +198,17 @@ class AttributionLatentY:
         elif dataset == "DiagVibSixDataModule":
             self.labels_name = [0, 2, 5]
         elif dataset == "ISICDataModule":
-            self.labels_name = ["MEL", "NV", "BCC", "AK", "BKL", "DF", "VASC", "SCC"]
+            self.labels_name = [
+                "MEL",
+                "NV",
+                "BCC",
+                "AK",
+                "BKL",
+                "DF",
+                "VASC",
+                "SCC",
+                "UNK",
+            ]
         else:
             self.labels_name = ["CNV", "DME", "Drusen", "Normal"]
 
