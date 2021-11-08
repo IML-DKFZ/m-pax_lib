@@ -9,3 +9,4 @@ latent_samples: 21
 
 index: 0
 baseline: 0
+kernel_size: 15

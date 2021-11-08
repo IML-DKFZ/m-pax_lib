@@ -25,6 +25,7 @@ def make_weights_for_balanced_classes(images, nclasses):
         weight[idx] = weight_per_class[val[1]]
     return weight
 
+
 class OCTDataModule(pl.LightningDataModule):
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
         super().__init__()

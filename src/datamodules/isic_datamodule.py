@@ -78,7 +78,7 @@ class ISICDataModule(pl.LightningDataModule):
             data_url = "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_Input.zip"
             save_path = os.path.join(self.data_dir, "ISIC/download_file.zip")
 
-            os.makedirs(os.path.join(self.data_dir, "ISIC/"))
+            os.makedirs(os.path.join(self.data_dir, "ISIC/"), exist_ok=True)
 
             print("Downloading and extracting ISIC skin cancer data...")
 

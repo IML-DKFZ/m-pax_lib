@@ -8,10 +8,16 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: diagvibsix_ZGO_beta=10
-  max_traversal: 70
-  index: 0
+  model_dir: diagvibsix_ZGO_beta=4
+  max_traversal: 50
+  index: 1
+  baseline: 0.5
+  kernel_size: 25
 
 datamodule:
-  batch_size: 100
+  batch_size: 250
   study: "ZGO"
+
+  # FGO_05 seed 55
+  # FGO_20 seed 52
+  # ZGO seed 43, index 1

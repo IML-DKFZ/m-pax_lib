@@ -12,6 +12,7 @@ import pytorch_lightning as pl
 
 from src.utils.download_url import *
 
+
 class DiagVibSixDataset(Dataset):
     def __init__(self, images, labels, study, transform=None):
         self.images = images
@@ -34,7 +35,6 @@ class DiagVibSixDataset(Dataset):
             y = 1
         if y == 5:
             y = 2
-
 
         if self.transform:
             x = self.transform(x)
@@ -60,7 +60,7 @@ class DiagVibSixDataModule(pl.LightningDataModule):
 
     def prepare_data(self):
         if not os.path.exists(os.path.join(self.data_dir, "DiagVibSix/ZGO/")):
-            data_url = "https://polybox.ethz.ch/index.php/s/aEWoWH2yv1HFws4/download"
+            data_url = "https://polybox.ethz.ch/index.php/s/kiBtDsesSzegXMz/download"
             save_path = os.path.join(self.data_dir, "DiagVibSix/download_file.zip")
 
             os.makedirs(os.path.join(self.data_dir, "DiagVibSix/"))
@@ -111,13 +111,13 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             transform=transform_img,
         )
 
-        self.train_enc, self.train_head = random_split(  # 43740 / 39995
+        self.train_enc, self.train_head = random_split(  # 43740
             self.train,
             [len(train_data["images"]) - 740, 740],
             generator=torch.Generator().manual_seed(self.seed),
         )
 
-        self.val_enc, self.val_head = random_split(  # 8748 / 8745
+        self.val_enc, self.val_head = random_split(  # 8748
             self.val,
             [len(val_data["images"]) - 648, 648],
             generator=torch.Generator().manual_seed(self.seed),
