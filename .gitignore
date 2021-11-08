@@ -50,3 +50,14 @@ coverage.xml
 docs/_build/
 
 *.vscode
+data/models/dvb_beta=4_z=10/encoder.yaml
+data/models/dvb_beta=4_z=10/head.yaml
+data/models/dvb_beta=4_z=100/encoder.yaml
+data/models/dvb_beta=4_z=100/head.yaml
+data/models/dvb_beta=4_z=50/encoder.yaml
+data/models/dvb_beta=4_z=50/head.yaml
+organize_checkpoints.py
+configs/logger/wandb.yaml
+configs/experiment/isic_tcvae_1.yaml
+configs/config_tcvae.yaml
+configs/config_head.yaml

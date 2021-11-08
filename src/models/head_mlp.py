@@ -78,7 +78,7 @@ class MLP(pl.LightningModule):
         )
 
         self.log(
-            "acc",
+            "train/acc",
             acc,
             on_epoch=False,
             prog_bar=True,
@@ -86,7 +86,7 @@ class MLP(pl.LightningModule):
         )
 
         self.log(
-            "loss",
+            "train/loss",
             loss,
             on_epoch=True,
             sync_dist=True if torch.cuda.device_count() > 1 else False,
@@ -98,9 +98,29 @@ class MLP(pl.LightningModule):
         x, y = batch
 
         y_hat = self(x)
+        acc = accuracy(
+            y_hat,
+            y,
+            average="macro",
+            num_classes=self.hparams.num_classes,
+        )
+
 
         val_loss = F.cross_entropy(y_hat, y, reduction="mean")
+        self.log(
+            "val/acc",
+            acc,
+            on_epoch=True,
+            prog_bar=True,
+            sync_dist=True if torch.cuda.device_count() > 1 else False,
+        )
 
+        self.log(
+            "val/loss",
+            val_loss,
+            on_epoch=True,
+            sync_dist=True if torch.cuda.device_count() > 1 else False,
+        )
         return {"val_loss": val_loss, "val_y": y, "val_y_hat": y_hat}
 
     def validation_epoch_end(self, outputs):
@@ -179,11 +199,9 @@ class MLP(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        optimizer = SGD(
+        optimizer = Adam(
             self.parameters(),
-            lr=self.hparams.lr,
-            weight_decay=self.hparams.weight_decay,
-            momentum=self.hparams.momentum,
+            lr=self.hparams.lr
         )
 
         scheduler = {

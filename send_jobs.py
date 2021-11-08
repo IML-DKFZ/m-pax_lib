@@ -6,13 +6,13 @@ nodes = [computation.Euler()]
 nb_repetitions = 1
 gpus = 1
 gpu_q = 4
-gpu_model = 'GeForceGTX1080Ti'
+gpu_model = 'GeForceRTX2080Ti'
 email = False
 
-experiment_config = 'opg_eval_1'
-name = 'opg_veal_test'
+experiment_config = 'diagvibsix_tcvae_1'
+name = 'diagvib_z90_head'
 
-script_name = 'run_eval.py'
+script_name = 'run_tcvae.py'
 
 for i in range(nb_repetitions):
     computation.run_experiment(nodes,
