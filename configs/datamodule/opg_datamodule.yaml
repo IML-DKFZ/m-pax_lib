@@ -1,7 +1,6 @@
 _target_: src.datamodules.opg_datamodule.DentalImagingDataModule
 
-#data_dir: ${data_dir}/opg/ # data_dir is specified in config.yaml
-data_dir: /cluster/scratch/jcarvalho/opg
+data_dir: ${data_dir}
 seed: ${seed}
 batch_size: 1
 num_workers: 10

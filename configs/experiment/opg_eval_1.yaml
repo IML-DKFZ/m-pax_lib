@@ -13,5 +13,6 @@ evaluation:
 
 datamodule:
   batch_size: 10
+  data_dir: /cluster/scratch/jcarvalho/opg
 
 # seed = 48

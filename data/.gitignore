@@ -3,6 +3,7 @@ OCT/
 ISIC/
 CXR8/
 DiagVibSix/
+opg/
 *.ckpt
 *.gif
 *.png

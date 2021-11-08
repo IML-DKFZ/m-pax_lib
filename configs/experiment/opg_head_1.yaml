@@ -18,6 +18,6 @@ datamodule:
   batch_size: 32
   pin_memory: False
   resize: 256
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  data_dir: /cluster/scratch/jcarvalho/opg
 
 name: opg_head

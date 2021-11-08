@@ -105,7 +105,6 @@ class MLP(pl.LightningModule):
             num_classes=self.hparams.num_classes,
         )
 
-
         val_loss = F.cross_entropy(y_hat, y, reduction="mean")
         self.log(
             "val/acc",
@@ -199,10 +198,7 @@ class MLP(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        optimizer = Adam(
-            self.parameters(),
-            lr=self.hparams.lr
-        )
+        optimizer = Adam(self.parameters(), lr=self.hparams.lr)
 
         scheduler = {
             "scheduler": CosineAnnealingLR(
