@@ -35,5 +35,6 @@ datamodule:
   molar_guarantee: True
   considered_class: 1
   labelled_size: 0.01
+  data_dir: /cluster/scratch/jcarvalho/opg
 
 name: opg_tcvae
