@@ -139,7 +139,7 @@ class Euler(Node):
                   'module load gcc/6.3.0; ' \
                   'module load python_gpu/3.8.5; ' \
                   'module load eth_proxy; ' \
-                  'bsub ' + N + J + '-n '+str(int(gpus*2))+' -W ' +str(gpu_q)+ ':00 -R "rusage[mem=10000,ngpus_excl_p='+str(gpus)+']" ' \
+                  'bsub ' + N + J + '-n '+str(int(gpus*2))+' -W ' +str(gpu_q)+ ':00 -R "select[gpu_model0=='+gpu_model+']" -R "rusage[mem=15000,ngpus_excl_p='+str(gpus)+']" ' \
                   "'python " +script_name+ experiment_arguments + ' +gpus=' + str(gpus)  + "' "
 
         # command = 'mkdir test'

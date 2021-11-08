@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - override /model: head_model.yaml
+  - override /trainer: default.yaml
+  - override /datamodule: opg_datamodule.yaml
+
+model:
+  num_classes: 4
+  folder_name: "opg_beta=4"
+  lr: 0.0001
+
+trainer:
+  gpus: 1
+  max_epochs: 10
+
+datamodule:
+  batch_size: 32
+  pin_memory: False
+  resize: 256
+  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+
+name: opg_head
