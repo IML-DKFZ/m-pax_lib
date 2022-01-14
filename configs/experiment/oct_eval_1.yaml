@@ -8,7 +8,7 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 evaluation:
-  model_dir: oct_beta=4
+  model_dir: oct_beta=10
   max_traversal: 70
   index: 0
 

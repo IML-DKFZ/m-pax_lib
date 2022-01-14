@@ -1,12 +1,12 @@
-model_dir: mnist_beta=10
+model_dir: mnist_beta=4
 
 is_posterior: True
 upsample_factor: 1
-max_traversal: 50
+max_traversal: 15
 
 input_dim: 32
-latent_samples: 21
+latent_samples: 11
 
-index: 0
+index: 12
 baseline: 0
 kernel_size: 15

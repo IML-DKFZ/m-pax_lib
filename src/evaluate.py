@@ -1,34 +1,34 @@
 import os
-from typing import List, Optional
 import warnings
 
 import hydra
+
 from omegaconf import DictConfig
-
-from pytorch_lightning import (
-    LightningDataModule,
-    seed_everything,
-)
-
 from PIL import ImageFile
+from pytorch_lightning import LightningDataModule, seed_everything
+from typing import List, Optional
 
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
-from src.models.tcvae_resnet import betaTCVAE_ResNet
-from src.models.tcvae_conv import betaTCVAE_Conv
-from src.models.head_mlp import MLP
-
-from src.evaluation.vis_LS import *
 from src.evaluation.vis_AM import *
-
+from src.evaluation.vis_LS import *
+from src.models.head_mlp import MLP
+from src.models.tcvae_conv import betaTCVAE_Conv
+from src.models.tcvae_resnet import betaTCVAE_ResNet
 from src.utils import utils
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 log = utils.get_logger(__name__)
-
 warnings.filterwarnings("ignore")
 
 
-def evaluate(config: DictConfig) -> Optional[float]:
+def evaluate(config: DictConfig):
+    """Contains evaluation pipeline.
+    Instantiates all PyTorch Lightning objects from config.
+
+    Parameters
+    ----------
+    config : omegaconf.DictConfig
+        Configuration composed by Hydra.
+    """
 
     # Set Seed
     if "seed" in config:
@@ -64,18 +64,17 @@ def evaluate(config: DictConfig) -> Optional[float]:
     head = MLP.load_from_checkpoint(path_ckpt)
     head.eval()
 
+    # Init visualizer
     log.info("Visualizing Latent Space")
     vis = Visualizer(
-        model=encoder,
-        model_dir=output_dir,
-        dataloader=datamodule,
-        input_dim=config.evaluation.input_dim,
+        index=config.evaluation.index,
         latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
         max_traversal=config.evaluation.max_traversal,
-        upsample_factor=config.evaluation.upsample_factor,
-        index=config.evaluation.index,
+        model=encoder,
+        model_dir=output_dir,
     )
 
+    # Visualizing latent space
     vis.reconstruct_traverse(
         dataloader=datamodule.train_dataloader(),
         is_posterior=config.evaluation.is_posterior,
@@ -85,45 +84,46 @@ def evaluate(config: DictConfig) -> Optional[float]:
 
     vis.gif_traversals(
         dataloader=datamodule.train_dataloader(),
+        index=config.evaluation.index,
         n_latents=encoder.state_dict()["fc_mu.weight"].shape[0],
         n_per_gif=60,
-        index=config.evaluation.index,
     )
 
+    # Computing the multi-path attributions
     log.info("Computing Attribution of:")
     log.info("original -> output (1/3)")
 
     AttributionOriginalY(
-        head=head,
-        dataloader=datamodule.train_dataloader(),
-        index=config.evaluation.index,
-        output_dir=output_dir,
-        dataset=datamodule.name,
         baseline=config.evaluation.baseline,
+        dataloader=datamodule.train_dataloader(),
+        dataset=datamodule.name,
+        head=head,
+        index=config.evaluation.index,
         kernel_size=config.evaluation.kernel_size,
+        output_dir=output_dir,
     ).visualization()
 
     log.info("latent -> output (2/3)")
 
     AttributionLatentY(
-        head=head,
-        encoder=encoder,
         dataloader=datamodule.train_dataloader(),
-        output_dir=output_dir,
-        index=config.evaluation.index,
         dataset=datamodule.name,
+        encoder=encoder,
+        head=head,
+        index=config.evaluation.index,
+        output_dir=output_dir,
     ).visualization()
 
     log.info("original -> latent (3/3)")
 
     AttributionOriginalLatent(
-        encoder=encoder,
+        baseline=config.evaluation.baseline,
         dataloader=datamodule.train_dataloader(),
+        encoder=encoder,
         index=config.evaluation.index,
+        kernel_size=config.evaluation.kernel_size,
         latent_dim=encoder.state_dict()["fc_mu.weight"].shape[0],
         output_dir=output_dir,
-        baseline=config.evaluation.baseline,
-        kernel_size=config.evaluation.kernel_size,
     ).visualization()
 
     log.info("Done!")

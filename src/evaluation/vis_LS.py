@@ -1,15 +1,16 @@
+import imageio
 import os
 
-import imageio
-from PIL import Image
 import numpy as np
 import torch
 import torch.nn.functional as F
+
+from PIL import Image
 from torchvision.utils import save_image
 
 from src.evaluation.vis_helper import *
 
-
+# To change name and type of the generated images
 PLOT_NAMES = dict(
     generate_samples="samples.png",
     data_samples="data_samples.png",
@@ -21,67 +22,57 @@ PLOT_NAMES = dict(
 
 
 class Visualizer:
-    def __init__(
-        self,
-        model,
-        dataloader,
-        model_dir,
-        save_images=True,
-        max_traversal=0.475,  # corresponds to ~2 for standard normal
-        upsample_factor=1,
-        latent_dim=10,
-        input_dim=32,
-        index=0,
-    ):
-        """
-        Visualizer is used to generate images of samples, reconstructions,
-        latent traversals and so on of the trained model.
+    """Visualizer is used to generate images of samples, reconstructions,
+    latent traversals of the trained model.
+    """
+
+    def __init__(self, index, latent_dim, max_traversal, model, model_dir):
+        """Called upon initialization.
+
         Parameters
         ----------
-        model : disvae.vae.VAE
-        dataset : str
-            Name of the dataset.
-        model_dir : str
-            The directory that the model is saved to and where the images will
-            be stored.
-        save_images : bool, optional
-            Whether to save images or return a tensor.
-        max_traversal: float, optional
+        index : int
+            Index of the image from whereon the next ten samples are visualized.
+        latent_dim : int
+            Latent dimension of the encoder.
+        max_traversal : float
             The maximum displacement induced by a latent traversal. Symmetrical
-            traversals are assumed. If `m>=0.5` then uses absolute value traversal,
-            if `m<0.5` uses a percentage of the distribution (quantile).
-            E.g. for the prior the distribution is a standard normal so `m=0.45` c
-            orresponds to an absolute value of `1.645` because `2m=90%%` of a
-            standard normal is between `-1.645` and `1.645`. Note in the case
-            of the posterior, the distribution is not standard normal anymore.
-        upsample_factor : floar, optional
-            Scale factor to upsample the size of the tensor
+            traversals are assumed. Note in the case of the posterior, the distribution
+            is not standard normal anymore.
+        model : src.models.tcvae_conv.betaTCVAE_Conv or src.models.tcvae_resnet.betaTCVAE_ResNet
+            The beta-TCVAE model with encoder and decoder.
+        model_dir : str
+            The directory that the model is saved to.
         """
-        self.model = model
         self.device = next(self.model.parameters()).device
+        self.index = index
         self.latent_dim = latent_dim
         self.max_traversal = max_traversal
-        self.save_images = save_images
+        self.model = model
         self.model_dir = model_dir
-        self.dataset = dataloader
-        self.upsample_factor = upsample_factor
-        self.input_dim = input_dim
-        self.index = index
 
     def _get_traversal_range(self, mean=0, std=1):
-        """Return the corresponding traversal range in absolute terms."""
-        max_traversal = self.max_traversal
+        """Returns the corresponding traversal range.
 
-        # if max_traversal < 0.5:
-        #     max_traversal = (1 - 2 * max_traversal) / 2  # from 0.45 to 0.05
-        #     max_traversal = stats.norm.ppf(max_traversal, loc=0, scale=std)  # from 0.05 to -1.645
+        Parameters
+        ----------
+        mean : int, optional
+            Mean of the normal distribution, by default 0.
+        std : int, optional
+            Standard deviation of the normal distribution, by default 1.
 
+        Returns
+        -------
+        dict
+            Symmetric traversal range.
+        """
         # symmetrical traversals
-        return (mean - std * max_traversal, mean + std * max_traversal)
+        return (mean - std * self.max_traversal, mean + std * self.max_traversal)
 
     def _traverse_line(self, idx, n_samples, data=None):
         """Return a (size, latent_size) latent sample, corresponding to a traversal
         of a latent variable indicated by idx.
+
         Parameters
         ----------
         idx : int
@@ -93,6 +84,16 @@ class Visualizer:
         data : torch.Tensor or None, optional
             Data to use for computing the posterior. Shape (N, C, H, W). If
             `None` then use the mean of the prior (all zeros) for all other dimensions.
+
+        Returns
+        -------
+        torch.Tensor
+            Traversal for a latent sample.
+
+        Raises
+        ------
+        ValueError
+            If more than one obervation is submitted.
         """
         if data is None:
             # mean of prior for other dimensions
@@ -125,9 +126,24 @@ class Visualizer:
 
         return samples
 
-    def _save_or_return(self, to_plot, size, filename, is_force_return=False):
-        """Create plot and save or return it."""
-        to_plot = F.interpolate(to_plot, scale_factor=self.upsample_factor)
+    def save_plot(self, to_plot, size, filename):
+        """Create plot and save or return it.
+
+        Parameters
+        ----------
+        to_plot : torch.Tensor
+            Image to plot.
+        size : tuple of ints
+            Dimensions of image.
+        filename : str
+            Name and type of image file.
+
+        Raises
+        ------
+        ValueError
+            Wrong image dimensions.
+        """
+        to_plot = F.interpolate(to_plot)
 
         if size[0] * size[1] != to_plot.shape[0]:
             raise ValueError(
@@ -136,25 +152,28 @@ class Visualizer:
 
         # `nrow` is number of images PER row => number of col
         kwargs = dict(nrow=size[1], pad_value=0)
-        if self.save_images and not is_force_return:
-            filename = os.path.join(self.model_dir, filename)
-            save_image(to_plot, filename, **kwargs)
-        else:
-            return make_grid_img(to_plot, **kwargs)
+        filename = os.path.join(self.model_dir, filename)
+        save_image(to_plot, filename, **kwargs)
 
     def _decode_latents(self, latent_samples):
         """Decodes latent samples into images.
         Parameters
         ----------
-        latent_samples : torch.autograd.Variable
+        latent_samples : torch.Tensor
             Samples from latent distribution. Shape (N, L) where L is dimension
             of latent distribution.
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed image from decoder.
         """
         latent_samples = latent_samples.to(self.device)
         return self.model.decoder(latent_samples).cpu()
 
     def generate_samples(self, size=(8, 8)):
         """Plot generated samples from the prior and decoding.
+
         Parameters
         ----------
         size : tuple of ints, optional
@@ -162,12 +181,10 @@ class Visualizer:
         """
         prior_samples = torch.randn(size[0] * size[1], self.latent_dim)
         generated = self._decode_latents(prior_samples)
-        return self._save_or_return(
-            generated.data, size, PLOT_NAMES["generate_samples"]
-        )
+        return self.save_plot(generated.data, size, PLOT_NAMES["generate_samples"])
 
     def data_samples(self, data, size=(8, 8)):
-        """Plot samples from the dataset
+        """Plot samples from the data
         Parameters
         ----------
         data : torch.Tensor
@@ -176,10 +193,11 @@ class Visualizer:
             Size of the final grid.
         """
         data = data[: size[0] * size[1], ...]
-        return self._save_or_return(data, size, PLOT_NAMES["data_samples"])
+        return self.save_plot(data, size, PLOT_NAMES["data_samples"])
 
     def reconstruct(self, data, size=(8, 8), is_original=True, is_force_return=False):
         """Generate reconstructions of data through the model.
+
         Parameters
         ----------
         data : torch.Tensor
@@ -192,6 +210,11 @@ class Visualizer:
             Whether to exclude the original plots.
         is_force_return : bool, optional
             Force returning instead of saving the image.
+
+        Raises
+        ------
+        ValueError
+            When original images should also be show, rows have to be even.
         """
         if is_original:
             if size[0] % 2 != 0:
@@ -212,7 +235,7 @@ class Visualizer:
         recs = recs.cpu()
 
         to_plot = torch.cat([originals, recs]) if is_original else recs
-        return self._save_or_return(
+        return self.save_plot(
             to_plot, size, PLOT_NAMES["reconstruct"], is_force_return=is_force_return
         )
 
@@ -222,6 +245,7 @@ class Visualizer:
         """Plot traverse through all latent dimensions (prior or posterior) one
         by one and plots a grid of images where each row corresponds to a latent
         traversal of one latent dimension.
+
         Parameters
         ----------
         data : bool, optional
@@ -233,8 +257,6 @@ class Visualizer:
         n_latents : int, optional
             The number of latent dimensions to display. I.e. number of rows. If `None`
             uses all latents.
-        is_reorder_latents : bool, optional
-            If the latent dimensions should be reordered or not
         is_force_return : bool, optional
             Force returning instead of saving the image.
         """
@@ -243,6 +265,8 @@ class Visualizer:
             self._traverse_line(dim, n_per_latent, data=data)
             for dim in range(self.latent_dim)
         ]
+        # To change order of latent dimensions:
+        # latent_samples = latent_samples.iloc[[1,2,7,0,5,8,6,3,9,4],:]
         decoded_traversal = self._decode_latents(torch.cat(latent_samples, dim=0))
 
         decoded_traversal = decoded_traversal[range(n_per_latent * n_latents), ...]
@@ -251,31 +275,29 @@ class Visualizer:
         sampling_type = "prior" if data is None else "posterior"
         filename = "{}_{}".format(sampling_type, PLOT_NAMES["traversals"])
 
-        return self._save_or_return(
+        return self.save_plot(
             decoded_traversal.data, size, filename, is_force_return=is_force_return
         )
 
     def reconstruct_traverse(
         self, dataloader, is_posterior=True, n_per_latent=8, n_latents=None
     ):
-        """
-        Creates a figure whith first row for original images, second are
+        """Creates a figure whith first row for original images, second are
         reconstructions, rest are traversals (prior or posterior) of the latent
         dimensions.
+
         Parameters
         ----------
-        data : torch.Tensor
-            Data to be reconstructed. Shape (N, C, H, W)
+        dataloader : torch.utils.data.DataLoader
+            Dataloader for data to be reconstructed.
+        is_posterior : bool, optional
+            Whether to sample from the posterior.
         n_per_latent : int, optional
             The number of points to include in the traversal of a latent dimension.
             I.e. number of columns.
         n_latents : int, optional
             The number of latent dimensions to display. I.e. number of rows. If `None`
             uses all latents.
-        is_posterior : bool, optional
-            Whether to sample from the posterior.
-        is_show_text : bool, optional
-            Whether the KL values next to the traversal rows.
         """
         data, _ = next(iter(dataloader))
 
@@ -300,21 +322,24 @@ class Visualizer:
     def gif_traversals(self, dataloader, n_latents=None, n_per_gif=15, index=0):
         """Generates a grid of gifs of latent posterior traversals where the rows
         are the latent dimensions and the columns are random images.
+
         Parameters
         ----------
-        data : bool
-            Data to use for computing the latent posteriors. The number of datapoint
+        dataloader : torch.utils.data.DataLoader
+            Dataloader for data to use for computing the latent posteriors. The number of datapoint
             (batchsize) will determine the number of columns of the grid.
         n_latents : int, optional
             The number of latent dimensions to display. I.e. number of rows. If `None`
             uses all latents.
         n_per_gif : int, optional
             Number of images per gif (number of traversals)
+        index : int, optional
+            Index of the image from whereon the next gifs are visualized, by default 0.
         """
         data, _ = next(iter(dataloader))
         data = data[index : (index + 5)]
         n_images, _, _, width_col = data.shape
-        width_col = int(width_col * self.upsample_factor)
+        width_col = int(width_col)
         all_cols = [[] for c in range(n_per_gif)]
         for i in range(n_images):
             grid = self.traversals(

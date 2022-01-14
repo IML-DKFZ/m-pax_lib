@@ -2,7 +2,7 @@ _target_: src.models.head_mlp.MLP
 
 data_dir: ${data_dir}
 
-folder_name: "mnist_beta=10"
+folder_name: "mnist_beta=4"
 latent_dim: 10
 num_classes: 10
 

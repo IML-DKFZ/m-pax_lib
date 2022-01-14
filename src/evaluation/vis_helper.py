@@ -1,53 +1,26 @@
+import imageio
 import random
 
 import numpy as np
 from PIL import Image, ImageDraw
 import pandas as pd
 import torch
-import imageio
 
 from torchvision.utils import make_grid
 
 
-def add_labels(input_image, labels):
-    """Adds labels next to rows of an image.
-    Parameters
-    ----------
-    input_image : image
-        The image to which to add the labels
-    labels : list
-        The list of labels to plot
-    """
-    new_width = input_image.width + 100
-    new_size = (new_width, input_image.height)
-    new_img = Image.new("RGB", new_size, color="white")
-    new_img.paste(input_image, (0, 0))
-    draw = ImageDraw.Draw(new_img)
-
-    for i, s in enumerate(labels):
-        draw.text(
-            xy=(
-                new_width - 100 + 0.005,
-                int((i / len(labels) + 1 / (2 * len(labels))) * input_image.height),
-            ),
-            text=s,
-            fill=(0, 0, 0),
-        )
-
-    return new_img
-
-
 def make_grid_img(tensor, **kwargs):
     """Converts a tensor to a grid of images that can be read by imageio.
-    Notes
-    -----
-    * from in https://github.com/pytorch/vision/blob/master/torchvision/utils.py
+
     Parameters
     ----------
-    tensor (torch.Tensor or list): 4D mini-batch Tensor of shape (B x C x H x W)
-        or a list of images all of the same size.
-    kwargs:
-        Additional arguments to `make_grid_img`.
+    tensor : torch.Tensor or list
+        4D mini-batch Tensor of shape (B x C x H x W) or a list of images all of the same size.
+
+    Returns
+    -------
+    numpy.array
+        Numpy array grid which can be processed by imageio.
     """
     grid = make_grid(tensor, **kwargs)
     img_grid = grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0)
@@ -55,20 +28,38 @@ def make_grid_img(tensor, **kwargs):
     return img_grid
 
 
-def get_image_list(image_file_name_list):
-    image_list = []
-    for file_name in image_file_name_list:
-        image_list.append(Image.open(file_name))
-    return image_list
-
-
 def arr_im_convert(arr, convert="RGBA"):
-    """Convert an image array."""
+    """Convert an image array. Used to output gif.
+
+    Parameters
+    ----------
+    arr : numpy.array
+        Image to be converted.
+    convert : str, optional
+        The three-channel (RGB) color model to be output, by default "RGBA".
+
+    Returns
+    -------
+    numpy.array
+        Converted image.
+    """
     return np.asarray(Image.fromarray(arr).convert(convert))
 
 
 def plot_grid_gifs(filename, grid_files, pad_size=7, pad_values=255):
-    """Take a grid of gif files and merge them in order with padding."""
+    """Take a grid of gif files and merge them in order with padding.
+
+    Parameters
+    ----------
+    filename : str
+        Name with type ending of image file.
+    grid_files : list
+        Grid with images for every gif.
+    pad_size : int, optional
+        Padding between gifs, by default 7.
+    pad_values : int, optional
+        Padding color, by default 255.
+    """
     grid_gifs = [[imageio.mimread(f) for f in row] for row in grid_files]
     n_per_gif = len(grid_gifs[0][0])
 
@@ -95,7 +86,24 @@ def plot_grid_gifs(filename, grid_files, pad_size=7, pad_values=255):
 
 
 def concatenate_pad(arrays, pad_size, pad_values, axis=0):
-    """Concatenate lsit of array with padding inbetween."""
+    """Concatenate list of array with padding inbetween.
+
+    Parameters
+    ----------
+    arrays : list
+        List with all gif arrays.
+    pad_size : int
+        Padding between gifs.
+    pad_values : int
+        Padding color.
+    axis : int, optional
+        Axe alignment of the gifs, by default 0
+
+    Returns
+    -------
+    np.array
+        New image array with padding between gifs.
+    """
     pad = np.ones_like(arrays[0]).take(indices=range(pad_size), axis=axis) * pad_values
 
     new_arrays = [pad]

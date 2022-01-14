@@ -1,16 +1,30 @@
+import pytorch_lightning as pl
 import torch
+
 from torch import nn
 from torch.nn import functional as F
 from torch.optim import SGD, Adam
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torchmetrics.functional import confusion_matrix, accuracy
-
-import pytorch_lightning as pl
 
 from src.models.tcvae_resnet import *
 from src.models.tcvae_conv import *
 
 
 class MLP(pl.LightningModule):
+    """Classification head inherit from Lightning module.
+    Contains the following methods:
+     - forward
+     - training_step
+     - validation_step
+     - validation_epoch_end
+     - test_step
+     - test_epoch_end
+     - configure_optimizers
+     - get_progress_bar_dict
+     Validation and test loss or metrics are only computed at the end of an epoch.
+    """
+
     def __init__(
         self,
         folder_name: str,
@@ -18,11 +32,35 @@ class MLP(pl.LightningModule):
         latent_dim: int,
         num_classes: int,
         weight_decay: float,
-        momentum=0.9999,
-        lr=0.0001,
         blocked_latent_features=[],
         fix_weights=True,
+        lr=0.0001,
+        momentum=0.9999,
     ):
+        """Called upon initialization. Filters latent dimensions, loads encoder,
+        and fixes weights of encoder if "fix_weights" is True.
+
+        Parameters
+        ----------
+        folder_name : str
+            Folder where encoder checkpoint is saved.
+        data_dir : str
+            Location of data directory.
+        latent_dim : int
+            Latent dimension of encoder.
+        num_classes : int
+            Number of output classes.
+        weight_decay : float
+            Weight decay regularization value to prevent overfitting.
+        blocked_latent_features : list, optional
+            List of blocked latent dimensions, by default [].
+        fix_weights : bool, optional
+            Fix weights of encoder, by default True.
+        lr : float, optional
+            Learning rate value for optimizer, by default 0.0001.
+        momentum : float, optional
+            Momentum value for optimizer, by default 0.9999.
+        """
         super().__init__()
         self.save_hyperparameters()
 
@@ -50,6 +88,18 @@ class MLP(pl.LightningModule):
         self.fc3 = nn.Linear(512, self.hparams.num_classes, bias=True)
 
     def forward(self, x):
+        """Predicts from encoded or not encoded image.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Image or latent representation.
+
+        Returns
+        -------
+        torch.Tensor
+            Prediction.
+        """
 
         if x.shape[1] != self.hparams.latent_dim:
             x, _ = self.encoder.encoder(x)
@@ -198,6 +248,13 @@ class MLP(pl.LightningModule):
         )
 
     def configure_optimizers(self):
+        """Optimizer and learning rate scheduler configuration.
+
+        Returns
+        -------
+        torch.optim.Adam, torch.optim.lr_scheduler.CosineAnnealingLR
+            Returns optimizer and learning rate scheduler.
+        """
         optimizer = Adam(self.parameters(), lr=self.hparams.lr)
 
         scheduler = {
@@ -209,6 +266,13 @@ class MLP(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def get_progress_bar_dict(self):
+        """Remove "v_num" from progress bar.
+
+        Returns
+        -------
+        dict
+            Dictionary with all tqdm relevant information.
+        """
         tqdm_dict = super().get_progress_bar_dict()
         if "v_num" in tqdm_dict:
             del tqdm_dict["v_num"]
