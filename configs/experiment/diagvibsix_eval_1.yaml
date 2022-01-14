@@ -10,9 +10,9 @@ defaults:
 evaluation:
   model_dir: diagvibsix_ZGO_beta=10
   max_traversal: 30
-  index: 1
+  index: 4
   baseline: 0.5
-  kernel_size: 20
+  kernel_size: 15
 
 datamodule:
   batch_size: 250
@@ -20,4 +20,4 @@ datamodule:
 
   # FGO_05 seed 55
   # FGO_20 seed 52
-  # ZGO seed 43, index 1, kernel_size=25
+  # ZGO seed 43, index 1

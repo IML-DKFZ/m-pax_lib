@@ -1,7 +1,8 @@
-from typing import List, Optional
-
 import hydra
+
+from typing import List, Optional
 from omegaconf import DictConfig
+from PIL import Image, ImageFile
 from pytorch_lightning import (
     Callback,
     LightningDataModule,
@@ -14,21 +15,17 @@ from pytorch_lightning.loggers import LightningLoggerBase
 from src.utils import utils
 
 log = utils.get_logger(__name__)
-
-from PIL import Image, ImageFile
-
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def train(config: DictConfig) -> Optional[float]:
+def train(config: DictConfig):
     """Contains training pipeline.
     Instantiates all PyTorch Lightning objects from config.
 
-    Args:
-        config (DictConfig): Configuration composed by Hydra.
-
-    Returns:
-        Optional[float]: Metric score for hyperparameter optimization.
+    Parameters
+    ----------
+    config : omegaconf.DictConfig
+        Configuration composed by Hydra.
     """
 
     # Set seed for random number generators in pytorch, numpy and python.random

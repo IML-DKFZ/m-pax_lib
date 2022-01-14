@@ -1,25 +1,39 @@
-import torch
 import os
-import zipfile
 import requests
+import zipfile
 
+import pytorch_lightning as pl
 import torch
+
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms, datasets
-import pytorch_lightning as pl
 
 from src.utils.download_url import *
 
-# From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
-# Computing class weights for balanced sampling
+
 def make_weights_for_balanced_classes(images, nclasses):
+    """Computing class weights for balanced sampling.
+    From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
+
+    Parameters
+    ----------
+    images : list
+        List with image and respective label.
+    nclasses : int
+        Number of classes.
+
+    Returns
+    -------
+    list
+        List with weights per class.
+    """
     count = [0] * nclasses
     for item in images:
         count[item[1]] += 1
     weight_per_class = [0.0] * nclasses
     N = float(sum(count))
     for i in range(nclasses):
-        weight_per_class[i] = N / float(count[i])
+        weight_per_class[i] = N / (float(count[i]) + 0.0001)
     weight = [0] * len(images)
     for idx, val in enumerate(images):
         weight[idx] = weight_per_class[val[1]]
@@ -27,7 +41,33 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 class OCTDataModule(pl.LightningDataModule):
+    """Datamodule for the OCT dataset, inherits from LightningDataModule.
+    The datamodule implements three core methods:
+        - prepare_data
+        - setup
+        - dataloders
+    Dataloaders are divided into the repective dataset splits and models.
+    """
+
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
+        """Called upon initialization.
+
+        Parameters
+        ----------
+        batch_size : int
+            Number of observations per batch.
+        resize : int
+            Quadratical size images are resized to.
+        data_dir : string
+            Location of data directory.
+        num_workers : int
+            Number of workers simultaneously loading data.
+        pin_memory : bool
+            If True loaded data tensors will be put into CUDA pinned memory automatically.
+        seed : int
+            Selected seed for the RNG in all devices.
+        """
+
         super().__init__()
         self.name = "OCTDataModule"
 
@@ -39,6 +79,11 @@ class OCTDataModule(pl.LightningDataModule):
         self.seed = seed
 
     def prepare_data(self):
+        """If dataset path does not exist, the method downloads, extracts,
+        and removes compressed file of the dataset.
+
+        """
+
         if not os.path.exists(os.path.join(self.data_dir, "OCT/test/")):
             data_url = "https://polybox.ethz.ch/index.php/s/kcRvwssD2yWGfsN/download"
             save_path = os.path.join(self.data_dir, "OCT/download_file.zip")
@@ -56,9 +101,10 @@ class OCTDataModule(pl.LightningDataModule):
             os.remove(save_path)
 
     def setup(self):
+        """Initializes dataset, randomly splits it and computes weights for weighted sampling."""
         transform_img = transforms.Compose(
             [
-                transforms.Resize((self.resize, self.resize)),  # Bilinear resizing
+                transforms.Resize((self.resize, self.resize)),
                 transforms.Grayscale(num_output_channels=1),
                 transforms.ToTensor(),
             ]
@@ -82,7 +128,7 @@ class OCTDataModule(pl.LightningDataModule):
             self.data_dir + "/OCT/test", transform=transform_img
         )
 
-        #### Computing and distributing weights for weighted sampling ####
+        # Computing and distributing weights for weighted sampling
         weights = make_weights_for_balanced_classes(train.imgs, len(train.classes))
         weights = torch.DoubleTensor(weights)
 

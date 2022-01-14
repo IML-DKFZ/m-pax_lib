@@ -1,13 +1,22 @@
 import torch
+
 from torch import nn
 
 
 def linear_init(layer, activation="relu"):
     """Initialize a linear layer.
-    Args:
-        layer (nn.Linear): parameters to initialize.
-        activation (`torch.nn.modules.activation` or str, optional) activation that
-            will be used on the `layer`.
+
+    Parameters
+    ----------
+    layer : nn.Linear
+        Parameters to initialize.
+    activation : torch.nn.modules.activation or str, optional
+        Activation that will be applied upon the layer, by default "relu".
+
+    Returns
+    -------
+    nn.init
+        Returns random uniform initilized weights, depending on activation function.
     """
     x = layer.weight
 
@@ -26,15 +35,32 @@ def linear_init(layer, activation="relu"):
 
 
 def weights_init(module):
+    """Only inits linear and convolutional layers.
+    """
     if isinstance(module, torch.nn.modules.conv._ConvNd):
-        # TO-DO: check litterature
         linear_init(module)
     elif isinstance(module, nn.Linear):
         linear_init(module)
 
 
 def get_activation_name(activation):
-    """Given a string or a `torch.nn.modules.activation` return the name of the activation."""
+    """Given a string or a torch.nn.modules.activation return the name of the activation.
+
+    Parameters
+    ----------
+    activation : str or torch.nn.modules.activation
+        torch.nn function name of activation.
+
+    Returns
+    -------
+    str
+        Activation name.
+
+    Raises
+    ------
+    ValueError
+        Unknown activation type.
+    """
     if isinstance(activation, str):
         return activation
 
@@ -53,7 +79,7 @@ def get_activation_name(activation):
 
 
 def get_gain(activation):
-    """Given an object of `torch.nn.modules.activation` or an activation name
+    """Given an object of "torch.nn.modules.activation" or an activation name
     return the correct gain."""
     if activation is None:
         return 1

@@ -2,36 +2,38 @@ import abc
 import math
 
 import torch
+
 from torch.nn import functional as F
 
 from src.utils.distr_sampling import *
 
 
 class BaseLoss(abc.ABC):
-    """
-    Base class for losses.
-    Parameters
-    ----------
-    record_loss_every: int, optional
-        Every how many steps to recorsd the loss.
-    rec_dist: {"bernoulli", "gaussian", "laplace"}, optional
-        Reconstruction distribution istribution of the likelihood on the each pixel.
-        Implicitely defines the reconstruction loss. Bernoulli corresponds to a
-        binary cross entropy (bse), Gaussian corresponds to MSE, Laplace
-        corresponds to L1.
-    steps_anneal: nool, optional
-        Number of annealing steps where gradually adding the regularisation.
-    """
+    """Base class for loss."""
 
     def __init__(self, rec_dist="bernoulli", steps_anneal=0):
+        """Called upon initialization.
+
+        Parameters
+        ----------
+        record_loss_every: int, optional
+            Every how many steps to recorsd the loss.
+        rec_dist: str: {"bernoulli", "gaussian", "laplace"}, optional
+            Reconstruction distribution istribution of the likelihood on the each pixel.
+            Implicitely defines the reconstruction loss. Bernoulli corresponds to a
+            binary cross entropy (bse), Gaussian corresponds to MSE, Laplace
+            corresponds to L1.
+        steps_anneal: bool, optional
+            Number of annealing steps where gradually adding the regularisation.
+        """
         self.n_train_steps = 0
         self.rec_dist = rec_dist
         self.steps_anneal = steps_anneal
 
     @abc.abstractmethod
     def __call__(self, data, recon_data, latent_dist, is_train, **kwargs):
-        """
-        Calculates loss for a batch of data.
+        """Calculates loss for a batch of data.
+
         Parameters
         ----------
         data : torch.Tensor
@@ -52,24 +54,9 @@ class BaseLoss(abc.ABC):
 
 
 class betatc_loss(BaseLoss):
-    """
-    Compute the decomposed KL loss with either minibatch weighted sampling or
-    minibatch stratified sampling according to [1]
-    Parameters
-    ----------
-    n_data: int
-        Number of data in the training set
-    alpha : float
-        Weight of the mutual information term.
-    beta : float
-        Weight of the total correlation term.
-    gamma : float
-        Weight of the dimension-wise KL term.
-    is_mss : bool
-        Whether to use minibatch stratified sampling instead of minibatch
-        weighted sampling.
-    kwargs:
-        Additional arguments for `BaseLoss`, e.g. rec_dist`.
+    """Compute the decomposed KL loss with either minibatch weighted sampling or
+    minibatch stratified sampling according to [1]. Inherits from BaseLoss.
+
     References
     ----------
        [1] Chen, Tian Qi, et al. "Isolating sources of disentanglement in variational
@@ -77,6 +64,24 @@ class betatc_loss(BaseLoss):
     """
 
     def __init__(self, n_data, alpha=1.0, beta=6.0, gamma=1.0, is_mss=True, **kwargs):
+        """Called upon initialization.
+
+        Parameters
+        ----------
+        n_data: int
+            Number of data in the training set
+        alpha : float
+            Weight of the mutual information term.
+        beta : float
+            Weight of the total correlation term.
+        gamma : float
+            Weight of the dimension-wise KL term.
+        is_mss : bool
+            Whether to use minibatch stratified sampling instead of minibatch
+            weighted sampling.
+        kwargs:
+            Additional arguments for `BaseLoss`, e.g. rec_dist`.
+        """
         super().__init__(**kwargs)
         self.beta = beta
         self.alpha = alpha
@@ -85,6 +90,27 @@ class betatc_loss(BaseLoss):
         self.n_data = n_data
 
     def __call__(self, data, recon_batch, latent_dist, is_train, latent_sample=None):
+        """Returns KL Divergence and reconstruction loss upon call.
+
+        Parameters
+        ----------
+        data : torch.Tensor
+            Original image(s).
+        recon_batch : torch.Tensor
+            Reconstructed image(s).
+        latent_dist : tuple of torch.tensor
+            sufficient statistics of the latent dimension. E.g. for gaussian
+            (mean, log_var) each of shape : (batch_size, latent_dim).
+        is_train : bool
+            Whether currently in train mode.
+        latent_sample : torch.Tensor, optional
+            Sample from latent distribution, by default None.
+
+        Returns
+        -------
+        torch.Tensor. torch.Tensor
+            Returns reconstruction loss and KL-Divergence based on beta-TCVAE loss.
+        """
         batch_size, latent_dim = latent_sample.shape
 
         rec_loss = _reconstruction_loss(data, recon_batch, distribution=self.rec_dist)
@@ -114,9 +140,9 @@ class betatc_loss(BaseLoss):
 
 
 def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None):
-    """
-    Calculates the per image reconstruction loss for a batch of data. I.e. negative
+    """Calculates the per image reconstruction loss for a batch of data. I.e. negative
     log likelihood.
+
     Parameters
     ----------
     data : torch.Tensor
@@ -134,6 +160,7 @@ def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None
         distribution corresponds to L1 solves partially the issue of MSE.
     storer : dict
         Dictionary in which to store important variables for vizualisation.
+
     Returns
     -------
     loss : torch.Tensor
@@ -176,6 +203,26 @@ def linear_annealing(init, fin, step, annealing_steps):
 
 
 def _get_log_pz_qz_prodzi_qzCx(latent_sample, latent_dist, n_data, is_mss=True):
+    """Approximates all distributions via minibatch weighted or stratified sampling.
+
+    Parameters
+    ----------
+    latent_sample : torch.Tensor, optional
+        Sample from latent distribution, by default None.
+    latent_dist : tuple of torch.tensor
+        sufficient statistics of the latent dimension. E.g. for gaussian
+        (mean, log_var) each of shape : (batch_size, latent_dim).
+    n_data: int
+        Number of data in the training set.
+    is_mss : bool, optional
+        Whether to use minibatch stratified sampling instead of minibatch
+        weighted sampling, by default True.
+
+    Returns
+    -------
+    torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
+        All distributions to approximate the KL-Divergence in the beta-TCVAE loss.
+    """
     batch_size, hidden_dim = latent_sample.shape
 
     # calculate log q(z|x)

@@ -1,22 +1,36 @@
-import torch
 import os
-import zipfile
 import requests
-from urllib.request import urlretrieve
+import zipfile
 
+import numpy as np
+import pandas as pd
+import pytorch_lightning as pl
 import torch
+
+from urllib.request import urlretrieve
 from torch.utils.data import DataLoader, random_split, Dataset
 from torchvision import transforms
-import pytorch_lightning as pl
-
-import pandas as pd
-import numpy as np
 from PIL import Image
 
+from src.utils.download_url import *
 
-# From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
-# Computing class weights for balanced sampling
+
 def make_weights_for_balanced_classes(images, nclasses):
+    """Computing class weights for balanced sampling.
+    From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
+
+    Parameters
+    ----------
+    images : list
+        List with image and respective label.
+    nclasses : int
+        Number of classes.
+
+    Returns
+    -------
+    list
+        List with weights per class.
+    """
     count = [0] * nclasses
     for item in images:
         count[item[1]] += 1
@@ -30,37 +44,85 @@ def make_weights_for_balanced_classes(images, nclasses):
     return weight
 
 
-def download_url(url, save_path):  # Chunk wise downloading to not overuse RAM
-    r = requests.get(url, stream=True, allow_redirects=True)
-    with open(save_path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-                f.flush()
-
-
 class ISICDataset(Dataset):
-    def __init__(self, img_path, transform, csv_path=None):
-        self.targets = pd.read_csv(csv_path)
+    """Dataset class for ISIC dataset, inherits from Dataset."""
+
+    def __init__(self, img_path: str, transform=None, csv_path=None):
+        """Called upon initialization. Reads label-csv from provided path.
+
+        Parameters
+        ----------
+        img_path : str
+            Path to image folder.
+        transform : torchvision.transforms, optional
+            Transformation pipeline applied to images, by default None.
+        csv_path : str, optional
+            Path to csv containing labels, by default None.
+        """
+        self.labels = pd.read_csv(csv_path)
         self.img_path = img_path
         self.transform = transform
 
     def __getitem__(self, index):
-        img_name = os.path.join(self.img_path, f"{self.targets.iloc[index, 0]}.jpg")
-        img = Image.open(img_name)
-        img = self.transform(img)
+        """Reads image and returns observation from dataset.
 
-        targets = self.targets.iloc[index, 1:]
-        targets = np.array([targets])
-        targets = targets.reshape(-1, 9).argmax()
-        return img, targets
+        Parameters
+        ----------
+        index : tensor
+            Index of observation.
+
+        Returns
+        -------
+        troch.Tensor, int
+            Returns image and label.
+        """
+        img_name = os.path.join(self.img_path, f"{self.labels.iloc[index, 0]}.jpg")
+        images = Image.open(img_name)
+        images = self.transform(images)
+
+        labels = self.labels.iloc[index, 1:]
+        labels = np.array([labels])
+        labels = labels.reshape(-1, 9).argmax()
+        return images, labels
 
     def __len__(self):
-        return len(self.targets)
+        """Returns the dataset size.
+
+        Returns
+        -------
+        int
+            Length of images.
+        """
+        return len(self.labels)
 
 
 class ISICDataModule(pl.LightningDataModule):
+    """Datamodule for the ISIC dataset, inherits from LightningDataModule.
+    The datamodule implements three core methods:
+        - prepare_data
+        - setup
+        - dataloders
+    Dataloaders are divided into the repective dataset splits and models.
+    """
+
     def __init__(self, batch_size, resize, data_dir, num_workers, pin_memory, seed):
+        """Called upon initialization.
+
+        Parameters
+        ----------
+        batch_size : int
+            Number of observations per batch.
+        resize : int
+            Quadratical size images are resized to.
+        data_dir : string
+            Location of data directory.
+        num_workers : int
+            Number of workers simultaneously loading data.
+        pin_memory : bool
+            If True loaded data tensors will be put into CUDA pinned memory automatically.
+        seed : int
+            Selected seed for the RNG in all devices.
+        """
         super().__init__()
         self.name = "ISICDataModule"
 
@@ -72,15 +134,19 @@ class ISICDataModule(pl.LightningDataModule):
         self.seed = seed
 
     def prepare_data(self):
+        """If dataset path does not exist, the method downloads, extracts,
+        and removes compressed image and label files of the dataset.
+
+        """
+
         if not os.path.exists(
             os.path.join(self.data_dir, "ISIC/ISIC_2019_Training_Input")
         ):
+            print("Downloading and extracting ISIC skin cancer data...")
             data_url = "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_Input.zip"
             save_path = os.path.join(self.data_dir, "ISIC/download_file.zip")
 
             os.makedirs(os.path.join(self.data_dir, "ISIC/"), exist_ok=True)
-
-            print("Downloading and extracting ISIC skin cancer data...")
 
             download_url(data_url, save_path)
 
@@ -91,20 +157,16 @@ class ISICDataModule(pl.LightningDataModule):
             os.remove(save_path)
 
         if not os.path.exists(os.path.join(self.data_dir, "ISIC/labels.csv")):
+            print("Downloading and extracting ISIC skin cancer labels...")
             data_url = "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_GroundTruth.csv"
             save_path = os.path.join(self.data_dir, "ISIC/labels.csv")
-
-            print("Downloading and extracting ISIC skin cancer labels...")
 
             urlretrieve(data_url, save_path)
 
     def setup(self):
+        """Initializes dataset, randomly splits it and computes weights for weighted sampling."""
         transform_img = transforms.Compose(
-            [
-                transforms.Resize((self.resize, self.resize)),  # Bilinear resizing
-                transforms.ToTensor(),
-                # transforms.Normalize((0.6678, 0.5298, 0.5245), (0.1333, 0.1476, 0.1590))
-            ]
+            [transforms.Resize((self.resize, self.resize)), transforms.ToTensor()]
         )
 
         data = ISICDataset(
@@ -125,7 +187,7 @@ class ISICDataModule(pl.LightningDataModule):
             generator=torch.Generator().manual_seed(self.seed),
         )
 
-        #### Computing and distributing weights for weighted sampling ####
+        # Computing and distributing weights for weighted sampling
         weights_train_head = torch.DoubleTensor(
             make_weights_for_balanced_classes(self.train_head, 9)
         )

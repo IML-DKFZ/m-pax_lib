@@ -1,4 +1,4 @@
-_target_: src.models.tcvae_resnet.betaTCVAE_ResNet
+_target_: src.models.tcvae_conv.betaTCVAE_Conv
 
 lr: 0.0001
 momentum: 0.9
