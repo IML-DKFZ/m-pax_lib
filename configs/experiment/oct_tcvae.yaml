@@ -9,6 +9,7 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 model:
+  _target_: src.models.tcvae_resnet.betaTCVAE_ResNet
   trainset_size: 84600
   input_dim: 256
   lr: 0.0001

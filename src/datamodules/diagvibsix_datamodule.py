@@ -60,7 +60,7 @@ class DiagVibSixDataset(Dataset):
             labels = 2
 
         if self.transform:
-            images = self.transform(x)
+            images = self.transform(images)
             images = images.permute(1, 2, 0)
 
         return images, labels
@@ -127,9 +127,9 @@ class DiagVibSixDataModule(pl.LightningDataModule):
             data_url = "https://polybox.ethz.ch/index.php/s/kiBtDsesSzegXMz/download"
             save_path = os.path.join(self.data_dir, "DiagVibSix/download_file.zip")
 
-            os.makedirs(os.path.join(self.data_dir, "DiagVibSix/"))
+            os.makedirs(os.path.join(self.data_dir, "DiagVibSix/"), exist_ok=True)
 
-            print("Downloading and extracting DiagVibSix data...")
+            print("Downloading and extracting DiagViB-6 data...")
 
             download_url(data_url, save_path)
 

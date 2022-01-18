@@ -19,5 +19,3 @@ datamodule:
   pin_memory: False
   resize: 128
   study: "ZGO"
-
-# ZGO seed 55

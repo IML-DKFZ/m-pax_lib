@@ -65,7 +65,6 @@ class MNISTDataModule(LightningDataModule):
         This method is called only from a single GPU.
 
         """
-
         MNIST(self.data_dir, train=True, download=True)
         MNIST(self.data_dir, train=False, download=True)
 
