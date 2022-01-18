@@ -1,6 +1,6 @@
 _target_: src.datamodules.mnist_datamodule.MNISTDataModule
 
-data_dir: ${data_dir} # data_dir is specified in config.yaml
+data_dir: ${data_dir} 
 seed: ${seed}
 batch_size: 64
 resize: 32

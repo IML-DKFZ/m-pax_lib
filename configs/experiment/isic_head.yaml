@@ -7,7 +7,7 @@ defaults:
 
 model:
   num_classes: 9
-  folder_name: "isic_beta=1"
+  folder_name: "isic_beta=10"
   lr: 0.0001
   blocked_latent_features: []
 
@@ -19,4 +19,3 @@ datamodule:
   batch_size: 32
   pin_memory: False
   resize: 256
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"

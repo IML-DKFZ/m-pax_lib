@@ -3,15 +3,14 @@
 defaults:
   - override /model: tcvae_model.yaml
   - override /trainer: default.yaml
-  - override /datamodule: diagvibsix_datamodule.yaml
+  - override /datamodule: isic_datamodule.yaml
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
 model:
-  _target_: src.models.tcvae_conv.betaTCVAE_Conv  
-  trainset_size: 43000
-  input_dim: 128
+  trainset_size: 20000
+  input_dim: 256
   input_channels: 3
   lr: 0.0001
   latent_dim: 10
@@ -24,16 +23,14 @@ model:
 trainer:
   gpus: 1
   precision: 32
-  max_epochs: 100
-  #gradient_clip_val: 0.5
-  #gradient_clip_algorithm: "value"
-  #distributed_backend: "dp" 
-  #sync_batchnorm: True 
+  max_epochs: 120
+  gradient_clip_val: 0.5
+  gradient_clip_algorithm: "value"
+  # distributed_backend: "dp" # If gpu: > 1
+  # sync_batchnorm: True 
 
 
 datamodule:
-  batch_size: 64
-  pin_memory: False
-  resize: 128
-  study: "FGO_20" # or ZGO
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
+  batch_size: 16
+  pin_memory: True
+  resize: 256
