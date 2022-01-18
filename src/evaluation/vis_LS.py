@@ -44,7 +44,7 @@ class Visualizer:
         model_dir : str
             The directory that the model is saved to.
         """
-        self.device = next(self.model.parameters()).device
+        self.device = next(model.parameters()).device
         self.index = index
         self.latent_dim = latent_dim
         self.max_traversal = max_traversal
@@ -126,7 +126,13 @@ class Visualizer:
 
         return samples
 
-    def save_plot(self, to_plot, size, filename):
+    def save_plot(
+        self,
+        to_plot,
+        size,
+        filename,
+        is_force_return=False,
+    ):
         """Create plot and save or return it.
 
         Parameters
@@ -137,14 +143,14 @@ class Visualizer:
             Dimensions of image.
         filename : str
             Name and type of image file.
+        is_force_return : bool
+            If true returns image and does not save it.
 
         Raises
         ------
         ValueError
             Wrong image dimensions.
         """
-        to_plot = F.interpolate(to_plot)
-
         if size[0] * size[1] != to_plot.shape[0]:
             raise ValueError(
                 "Wrong size {} for datashape {}".format(size, to_plot.shape)
@@ -152,8 +158,11 @@ class Visualizer:
 
         # `nrow` is number of images PER row => number of col
         kwargs = dict(nrow=size[1], pad_value=0)
-        filename = os.path.join(self.model_dir, filename)
-        save_image(to_plot, filename, **kwargs)
+        if not is_force_return:
+            filename = os.path.join(self.model_dir, filename)
+            save_image(to_plot, filename, **kwargs)
+        else:
+            return make_grid_img(to_plot, **kwargs)
 
     def _decode_latents(self, latent_samples):
         """Decodes latent samples into images.

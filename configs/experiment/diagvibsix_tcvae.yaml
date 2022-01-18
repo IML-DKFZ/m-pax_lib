@@ -9,7 +9,6 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 model:
-  _target_: src.models.tcvae_conv.betaTCVAE_Conv  
   trainset_size: 43000
   input_dim: 128
   input_channels: 3

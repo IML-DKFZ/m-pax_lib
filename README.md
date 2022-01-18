@@ -18,7 +18,7 @@
 * [Project Structure](#project-structure)
 * [Usage](#usage)
   * [Run the code](#run-the-code)
-  * [Reproducing the results](#reproducing-the-results)
+  * [Reproduce the results](#reproduce-the-results)
 * [How to cite this code](#how-to-cite-this-code)
 * [Acknowledgements](#acknowledgements)
 
@@ -78,13 +78,62 @@ Explainable AI aims to render model behavior understandable by humans, which can
 
 ## 🚀&nbsp;&nbsp;Usage
 
-All essential libraries for the execution of the code are provided in the requirements.txt file from which a new environment can be created (Linux only). For the R script, please install the corresponding libraries beforehand. 
+All essential libraries for the execution of the code are provided in the `requirements.txt` file from which a new environment can be created (Linux only). For the R script, please install the corresponding libraries beforehand. Setup package in a conda environment:
+
+```
+git clone https://
+cd x-dssl
+conda create -n x-dssl python=3.7
+source activate x-dssl
+pip install -r requirements.txt
+````
+Depending on your GPU, change the torch and torchvision version in the `requirements.txt` file to the respective CUDA supporting version. For CPU only suppert add `trainer.gpus=0` behind every command.
 
 ### Run the code
 
 Once the virtual environment is activated, the code can be run as follows:
 
-### Reproducing the results
+Running the scripts without any experiment files will start the training and evaluation on mnist. All parameters are defined in the hydra config files and not overwritten by any experiment files. The following commands will first, train the &#946;-TCVAE loss based model with &#946; = 4, second train the downstream classification head, and at last evaluate the model. The `run_tcvae.py` script also automatically initializes the download and extraction of the dataset at `./data/MNIST`.
+
+```
+python run_tcvae.py
+python run_head.py
+python run_eval.py
+```
+Before training the head, place one of the encoder checkpoints (best or last epoch) from `./logs/runs/date/timestamps/checkpoints` at `./models/mnist_beta=4` and rename them to `encoder.ckpt`. Folder can be renamed, but then has to be changed in the `config/model/head_model.yaml` and  `config/evaluation/default.yaml` files. Place the head checkpoint in the same folder and rename it to `head.ckpt`. The evaluation script will create automatically an image folder inside, and export all graphics to this location.
+
+### Reproduce the results
+
+For all other experiments in the paper, respective experiment files to overwrite the default parameters were created. The following configurations reproduce the results from the paper for each dataset. You can also add your own experimen yaml files
+or change the existing. For more information see [here](https://github.com/ashleve/lightning-hydra-template).
+
+#### DiagViB-6
+
+```
+python run_tcvae.py +experiment=diagvibsix_tcvae.yaml
+python run_head.py +experiment=diagvibsix_head.yaml
+python run_eval.py +experiment=diagvibsix_eval.yaml seed=43
+```
+
+These commands run the experiment for the ZGO study. For the other two studies change ZGO to FGO_05 or FGO_20 in the three experiment files. 
+
+#### UCSD OCT Retina Scans
+
+```
+python run_tcvae.py +experiment=oct_tcvae.yaml
+python run_head.py +experiment=oct_head.yaml
+python run_eval.py +experiment=oct_eval.yaml seed=48
+```
+
+#### ISIC Skin Lesion Images
+
+```
+python run_tcvae.py +experiment=isic_tcvae.yaml
+python run_head.py +experiment=isic_head.yaml
+python run_eval.py +experiment=isic_eval.yaml seed=47
+```
+
+GIFs traversing the ten latent space features for five observations of each of the three datasets:
 
 <p align="center">
     <img src="https://polybox.ethz.ch/index.php/s/kRVJcPFubIW1JXy/download" width="257"> &nbsp;
