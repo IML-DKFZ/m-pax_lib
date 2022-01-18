@@ -33,7 +33,7 @@ Explainable AI aims to render model behavior understandable by humans, which can
 ## 🗂&nbsp;&nbsp;Project Structure
 ```
 ├── README.md                                
-├── LICENSE.txt                             
+├── LICENSE                             
 ├── requirements.txt            - txt file with the environment
 ├── run_eval.py                 - Main script to execute for evaluation
 ├── run_head.py                 - Main script to execute for supervised training

@@ -3,6 +3,7 @@ _target_: src.datamodules.diagvibsix_datamodule.DiagVibSixDataModule
 data_dir: ${data_dir} 
 seed: ${seed}
 batch_size: 32
+
 num_workers: 10
 pin_memory: False
 resize: 128

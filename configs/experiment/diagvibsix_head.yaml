@@ -19,6 +19,5 @@ datamodule:
   pin_memory: False
   resize: 128
   study: "ZGO"
-  #data_dir: "/gpu/data/OE0612/l727n/data/x-dssl/"
 
-# seed=55
+# ZGO seed 55
