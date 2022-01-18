@@ -17,7 +17,6 @@ from src.utils.download_url import *
 
 def make_weights_for_balanced_classes(images, nclasses):
     """Computing class weights for balanced sampling.
-    From: https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/3
 
     Parameters
     ----------
