@@ -107,6 +107,8 @@ Before training the head, place one of the encoder checkpoints (best or last epo
 For all other experiments in the paper, respective experiment files to overwrite the default parameters were created. The following configurations reproduce the results from the paper for each dataset. You can also add your own experimen yaml files
 or change the existing. For more information see [here](https://github.com/ashleve/lightning-hydra-template).
 
+The ISIC and OCT evaluation need a rather large RAM size of ~80Gb. Reduce the batch size in the `isic/oct_eval.yaml` file to get less accurate but more RAM sparing results.
+
 #### DiagViB-6
 
 ```
