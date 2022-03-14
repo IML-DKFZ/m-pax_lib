@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/lukaskln/Interpretability-of-Disentangled-Representations-by-Explanatory-Methods">
-    <img src="https://polybox.ethz.ch/index.php/s/rgCwPsnIfT2p928/download" alt="Logo" width="650"> 
+    <img src="https://polybox.ethz.ch/index.php/s/8y400QVO0cWAdtW/download" alt="Logo" width="650"> 
   </a>
 
   <h3 align="center">Improving Explainability of Disentangled Representations using Multipath-Attribution Mappings</h3>
@@ -25,7 +25,7 @@
 ## 📌&nbsp;&nbsp;Introduction
 
 <p align="center">
-  <img src="https://polybox.ethz.ch/index.php/s/qzYLmEENEwqT66W/download" width="650"> 
+  <img src="https://polybox.ethz.ch/index.php/s/rpuUqMnANAQTmKC/download" width="650"> 
 </p>
 
 Explainable AI aims to render model behavior understandable by humans, which can be seen as an intermediate step in extracting causal relations from correlative patterns. Due to the high risk of possible fatal decisions in image-based clinical diagnostics, it is necessary to integrate explainable AI into these safety-critical systems. Current explanatory methods typically assign attribution scores to pixel regions in the input image, indicating their importance for a model's decision. However, they fall short when explaining why a visual feature is used. We propose a framework that utilizes interpretable disentangled representations for downstream-task prediction. Through visualizing the disentangled representations, we enable experts to investigate possible causation effects by leveraging their domain knowledge. Additionally, we deploy a multi-path attribution mapping for enriching and validating explanations. We demonstrate the effectiveness of our approach on a synthetic benchmark suite and two medical datasets. We show that the framework not only acts as a catalyst for causal relation extraction but also enhances model robustness by enabling shortcut detection without the need for testing under distribution shifts.
@@ -81,7 +81,7 @@ Explainable AI aims to render model behavior understandable by humans, which can
 All essential libraries for the execution of the code are provided in the `requirements.txt` file from which a new environment can be created (Linux only). For the R script, please install the corresponding libraries beforehand. Setup package in a conda environment:
 
 ```
-git clone https://
+git clone https://github.com/IML-DKFZ/m-pax_lib
 cd x-dssl
 conda create -n x-dssl python=3.7
 source activate x-dssl
