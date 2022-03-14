@@ -87,7 +87,7 @@ conda create -n x-dssl python=3.7
 source activate x-dssl
 pip install -r requirements.txt
 ````
-Depending on your GPU, change the torch and torchvision version in the `requirements.txt` file to the respective CUDA supporting version. For CPU only suppert add `trainer.gpus=0` behind every command.
+Depending on your GPU, change the torch and torchvision version in the `requirements.txt` file to the respective CUDA supporting version. For CPU only support add `trainer.gpus=0` behind every command.
 
 ### Run the code
 
@@ -104,8 +104,8 @@ Before training the head, place one of the encoder checkpoints (best or last epo
 
 ### Reproduce the results
 
-For all other experiments in the paper, respective experiment files to overwrite the default parameters were created. The following configurations reproduce the results from the paper for each dataset. You can also add your own experimen yaml files
-or change the existing. For more information see [here](https://github.com/ashleve/lightning-hydra-template).
+For all other experiments in the paper, respective experiment files to overwrite the default parameters were created. The following configurations reproduce the results from the paper for each dataset. You can also add your own experiment yaml files
+or change the existing ones. For more information see [here](https://github.com/ashleve/lightning-hydra-template).
 
 The ISIC and OCT evaluation need a rather large RAM size of ~80Gb. Reduce the batch size in the `isic/oct_eval.yaml` file to get less accurate but more RAM sparing results.
 
