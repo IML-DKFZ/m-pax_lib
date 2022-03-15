@@ -82,9 +82,9 @@ All essential libraries for the execution of the code are provided in the `requi
 
 ```
 git clone https://github.com/IML-DKFZ/m-pax_lib
-cd x-dssl
-conda create -n x-dssl python=3.7
-source activate x-dssl
+cd m-pax_lib
+conda create -n m-pax_lib python=3.7
+source activate m-pax_lib
 pip install -r requirements.txt
 ````
 Depending on your GPU, change the torch and torchvision version in the `requirements.txt` file to the respective CUDA supporting version. For CPU only support add `trainer.gpus=0` behind every command.
