@@ -1,6 +1,6 @@
 <br />
 <p align="center">
-  <a href="https://github.com/lukaskln/Interpretability-of-Disentangled-Representations-by-Explanatory-Methods">
+  <a href="https://github.com/IML-DKFZ/m-pax_lib">
     <img src="https://polybox.ethz.ch/index.php/s/8y400QVO0cWAdtW/download" alt="Logo" width="650"> 
   </a>
 
@@ -14,7 +14,7 @@
 </p>
 
 ## 🔎&nbsp;&nbsp;Table of Contents
-* [Introduction](#introduction)
+* [Introduction](#Introduction)
 * [Project Structure](#project-structure)
 * [Usage](#usage)
   * [Run the code](#run-the-code)
@@ -22,7 +22,7 @@
 * [How to cite this code](#how-to-cite-this-code)
 * [Acknowledgements](#acknowledgements)
 
-## 📌&nbsp;&nbsp;Introduction
+## <a id="Introduction"></a> 📌&nbsp;&nbsp;Introduction 
 
 <p align="center">
   <img src="https://polybox.ethz.ch/index.php/s/rpuUqMnANAQTmKC/download" width="650"> 
@@ -30,7 +30,7 @@
 
 Explainable AI aims to render model behavior understandable by humans, which can be seen as an intermediate step in extracting causal relations from correlative patterns. Due to the high risk of possible fatal decisions in image-based clinical diagnostics, it is necessary to integrate explainable AI into these safety-critical systems. Current explanatory methods typically assign attribution scores to pixel regions in the input image, indicating their importance for a model's decision. However, they fall short when explaining why a visual feature is used. We propose a framework that utilizes interpretable disentangled representations for downstream-task prediction. Through visualizing the disentangled representations, we enable experts to investigate possible causation effects by leveraging their domain knowledge. Additionally, we deploy a multi-path attribution mapping for enriching and validating explanations. We demonstrate the effectiveness of our approach on a synthetic benchmark suite and two medical datasets. We show that the framework not only acts as a catalyst for causal relation extraction but also enhances model robustness by enabling shortcut detection without the need for testing under distribution shifts.
 
-## 🗂&nbsp;&nbsp;Project Structure
+## <a id="project-structure"></a> 🗂&nbsp;&nbsp;Project Structure
 ```
 ├── README.md                                
 ├── LICENSE                             
@@ -76,7 +76,7 @@ Explainable AI aims to render model behavior understandable by humans, which can
 
 ```
 
-## 🚀&nbsp;&nbsp;Usage
+## <a id="usage"></a> 🚀&nbsp;&nbsp;Usage
 
 All essential libraries for the execution of the code are provided in the `requirements.txt` file from which a new environment can be created (Linux only). For the R script, please install the corresponding libraries beforehand. Setup package in a conda environment:
 
@@ -143,15 +143,18 @@ GIFs traversing the ten latent space features for five observations of each of t
     <img src="https://polybox.ethz.ch/index.php/s/Zm2v8XybCy7awvS/download" width="250"> 
 </p>
 
-## 📝&nbsp;&nbsp;How to cite this code
+## <a id="how-to-cite-this-code"></a> 📝&nbsp;&nbsp;How to cite this code
 
 Please cite the original publication:
 
 ```
-@article{klein2021improving,
+@inproceedings{
+  klein2022improving,
   title={Improving Explainability of Disentangled Representations using Multipath-Attribution Mappings},
-  author={Klein, Lukas and Carvalho, Jo{\~a}o BS and El-Assady, Mennatallah and Penna, Paolo and Buhmann, Joachim M and Jaeger, Paul F},
-  year={2021}
+  author={Lukas Klein and Jo{\~a}o B. S. Carvalho and Mennatallah El-Assady and Paolo Penna and Joachim M. Buhmann and Paul F Jaeger},
+  booktitle={Medical Imaging with Deep Learning},
+  year={2022},
+  url={https://openreview.net/forum?id=3uQ2Z0MhnoE}
 }
 ```
 
