@@ -172,11 +172,12 @@ ____
 <br>
 
 <p align="left">
-  <img src="https://polybox.ethz.ch/index.php/s/kqDrOTTIzPFYPU7/download" width="150"> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Deutsches_Krebsforschungszentrum_Logo.svg/1200px-Deutsches_Krebsforschungszentrum_Logo.svg.png" width="500"> 
+  <img src="https://polybox.ethz.ch/index.php/s/kqDrOTTIzPFYPU7/download" width="100"> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Deutsches_Krebsforschungszentrum_Logo.svg/1200px-Deutsches_Krebsforschungszentrum_Logo.svg.png" width="350"> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/ETH_Z%C3%BCrich_Logo_black.svg/1280px-ETH_Z%C3%BCrich_Logo_black.svg.png" width="300">  
 </p>
 
-The m-pax_lib is partly developed and maintained by the Interactive Machine Learning Group of [Helmholtz Imaging](https://www.helmholtz-imaging.de/) and the [DKFZ](https://www.dkfz.de/de/index.html).
+The m-pax_lib is developed and maintained by the Interactive Machine Learning Group of [Helmholtz Imaging](https://www.helmholtz-imaging.de/) and the [DKFZ](https://www.dkfz.de/de/index.html), and the Information Science and Engineering Group at [ETH Zürich](https://ise.inf.ethz.ch/).
 
 
 
