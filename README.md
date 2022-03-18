@@ -138,7 +138,7 @@ python run_eval.py +experiment=isic_eval.yaml seed=47
 GIFs traversing the ten latent space features for five observations of each of the three datasets:
 
 <p align="center">
-    <img src="https://polybox.ethz.ch/index.php/s/yAzDc0fqDiyud3i/download" width="150"> &nbsp;
+    <img src="https://polybox.ethz.ch/index.php/s/yAzDc0fqDiyud3i/download" width="154"> &nbsp;
     <img src="https://polybox.ethz.ch/index.php/s/CQPQFhSfBtiuUad/download" width="150"> &nbsp;
     <img src="https://polybox.ethz.ch/index.php/s/53nZuouyBQKjznn/download" width="150"> 
 </p>
