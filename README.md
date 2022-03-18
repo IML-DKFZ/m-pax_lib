@@ -175,7 +175,7 @@ ____
   <img src="https://polybox.ethz.ch/index.php/s/I6VJEPrCDW9zbEE/download" width="190"> &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://polybox.ethz.ch/index.php/s/kqDrOTTIzPFYPU7/download" width="91"> &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Deutsches_Krebsforschungszentrum_Logo.svg/1200px-Deutsches_Krebsforschungszentrum_Logo.svg.png" width="270"> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/ETH_Z%C3%BCrich_Logo_black.svg/1280px-ETH_Z%C3%BCrich_Logo_black.svg.png" width="230">  
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3A8RAM4OeLrG3XXi263zSvM_GVKbJQooDzS6VecJSA_ncBW1wbhrtg6vwqH3Odx5sWQ&usqp=CAU" width="200">  
 </p>
 
 The m-pax_lib is developed and maintained by the Interactive Machine Learning Group of [Helmholtz Imaging](https://www.helmholtz-imaging.de/) and the [DKFZ](https://www.dkfz.de/de/index.html), as well as the Information Science and Engineering Group at [ETH Zürich](https://ise.inf.ethz.ch/).
